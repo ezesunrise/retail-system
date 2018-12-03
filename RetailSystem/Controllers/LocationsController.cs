@@ -7,110 +7,121 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RetailSystem.Data;
+using RetailSystem.Dtos;
 using RetailSystem.Models;
 
 namespace RetailSystem.Controllers
 {
     [Produces("application/json")]
-    [Route("api/Locations")]
+    [Route("api/[controller]/[action]")]
     public class LocationsController : Controller
     {
         private readonly IRepository<Location> _repository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public LocationsController(IRepository<Location> repository)
+        public LocationsController(IRepository<Location> repository, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _repository = repository;
+            _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
-        // GET: api/Locations
         [HttpGet]
-        public async Task<IEnumerable<Location>> GetLocations()
+        public async Task<IEnumerable<LocationListDto>> GetAllLocations(int businessId)
         {
-            return await _repository.GetAsync();
+            var entities = await _repository.GetAsync(l => l.BusinessId == businessId);
+            return _mapper.Map<IEnumerable<LocationListDto>>(entities);
         }
 
-        // GET: api/Locations/5
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetLocation([FromRoute] int id)
+        public async Task<IActionResult> GetLocationById([FromRoute] int id)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var location = await _repository.GetByIdAsync(id);
+            var entity = await _repository.GetByIdAsync(id);
 
-            if (location == null)
+            if (entity == null)
             {
                 return NotFound();
             }
 
-            return Ok(location);
+            var entityDto = _mapper.Map<LocationDto>(entity);
+            return Ok(entityDto);
         }
 
-        // PUT: api/Locations/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateLocation([FromRoute] int id, [FromBody] Location location)
+        [HttpPost]
+        public async Task<IActionResult> CreateLocation([FromBody] LocationDto entityDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            if (id != location.Id)
+            var entity = _mapper.Map<Location>(entityDto);
+            try
+            {
+                _repository.Add(entity);
+                await _unitOfWork.SaveAsync();
+                return CreatedAtAction("GetLocationById", new { id = entity.Id }, entity.Id);
+            }
+            catch (Exception e)
+            {
+                throw new Exception("An unexpected error occured. Could not be added.", e);
+            }
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateLocation([FromRoute] int id, [FromBody] LocationDto entityDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (id != entityDto.Id)
             {
                 return BadRequest();
             }
 
-            _repository.Update(location);
+            var entity = await _repository.GetByIdAsync(entityDto.Id);
+            if (entity == null)
+            {
+                return BadRequest("Location does not exist");
+            }
+
+            _mapper.Map(entityDto, entity);
 
             try
             {
+                _repository.Update(entity);
                 await _unitOfWork.SaveAsync();
             }
 
             catch (Exception)
             {
-                if (!await _repository.Exists(location.Id))
-                {
-                    return BadRequest("Location does not exist");
-                }
-
                 throw new Exception("An unexpected error occured. Could not update.");
             }
 
-            return NotFound();
+            return NoContent();
         }
 
-        // POST: api/Locations
-        [HttpPost]
-        public async Task<IActionResult> CreateLocation([FromBody] Location location)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            _repository.Add(location);
-            await _unitOfWork.SaveAsync();
-
-            return CreatedAtAction("GetLocation", new { id = location.Id }, location);
-        }
-
-        // DELETE: api/Locations/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteLocation([FromRoute] int id)
         {
-            var removed = await _repository.Remove(id);
+            var entity = await _repository.GetByIdAsync(id);
+            if (entity == null)
+            {
+                return BadRequest("The Location to be deleted does not exist");
+            }
+
+            _repository.Remove(entity);
 
             try
             {
-                if (!removed)
-                {
-                    return NotFound("The Location to be deleted was not found");
-                }
                 await _unitOfWork.SaveAsync();
                 return Ok();
             }

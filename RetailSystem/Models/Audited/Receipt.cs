@@ -13,7 +13,7 @@ namespace RetailSystem.Models
         }
 
         [Required]
-        public string ReferenceNumber { get; set; }
+        public string ReceiptNumber { get; set; }
 
         public int SaleId { get; set; }
         [ForeignKey(nameof(SaleId))]
@@ -26,6 +26,5 @@ namespace RetailSystem.Models
 
         public decimal CashPaid { get; set; }
 
-        public decimal Change { get => (CashPaid - Sale.Total); }
     }
 }

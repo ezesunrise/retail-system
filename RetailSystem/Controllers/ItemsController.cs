@@ -7,110 +7,128 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RetailSystem.Data;
+using RetailSystem.Dtos;
 using RetailSystem.Models;
 
 namespace RetailSystem.Controllers
 {
     [Produces("application/json")]
-    [Route("api/Items")]
+    [Route("api/[controller]/[action]")]
     public class ItemsController : Controller
     {
         private readonly IRepository<Item> _repository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public ItemsController(IRepository<Item> repository)
+        public ItemsController(IRepository<Item> repository, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _repository = repository;
+            _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
-        // GET: api/Items
         [HttpGet]
-        public async Task<IEnumerable<Item>> GetItems()
+        public async Task<IEnumerable<ItemListDto>> GetAllItems(int businessId)
         {
-            return await _repository.GetAsync();
+            var entities = await _repository.GetAsync(i => i.Category.BusinessId == businessId);
+            return _mapper.Map<IEnumerable<ItemListDto>>(entities);
         }
 
-        // GET: api/Items/5
+        [HttpGet]
+        public async Task<IEnumerable<ItemListDto>> GetItemsByCategory(int categoryId)
+        {
+            var entities = await _repository.GetAsync(i => i.CategoryId == categoryId);
+            return _mapper.Map<IEnumerable<ItemListDto>>(entities);
+        }
+
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetItem([FromRoute] int id)
+        public async Task<IActionResult> GetItemById([FromRoute] int id)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var item = await _repository.GetByIdAsync(id);
+            var entity = await _repository.GetByIdAsync(id);
 
-            if (item == null)
+            if (entity == null)
             {
                 return NotFound();
             }
 
-            return Ok(item);
+            var entityDto = _mapper.Map<ItemDto>(entity);
+            return Ok(entityDto);
         }
 
-        // PUT: api/Items/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateItem([FromRoute] int id, [FromBody] Item item)
+        [HttpPost]
+        public async Task<IActionResult> CreateItem([FromBody] ItemDto entityDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            if (id != item.Id)
+            var entity = _mapper.Map<Item>(entityDto);
+            try
+            {
+                _repository.Add(entity);
+                await _unitOfWork.SaveAsync();
+                return CreatedAtAction("GetItemById", new { id = entity.Id }, entity.Id);
+            }
+            catch (Exception e)
+            {
+                throw new Exception("An unexpected error occured. Could not be added.", e);
+            }
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateItem([FromRoute] int id, [FromBody] ItemDto entityDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (id != entityDto.Id)
             {
                 return BadRequest();
             }
 
-            _repository.Update(item);
+            var entity = await _repository.GetByIdAsync(entityDto.Id);
+            if (entity == null)
+            {
+                return NotFound("Item does not exist");
+            }
+
+            _mapper.Map(entityDto, entity);
 
             try
             {
+                _repository.Update(entity);
                 await _unitOfWork.SaveAsync();
             }
 
             catch (Exception)
             {
-                if (!await _repository.Exists(item.Id))
-                {
-                    return BadRequest("Item does not exist");
-                }
-
                 throw new Exception("An unexpected error occured. Could not update.");
             }
 
-            return NotFound();
+            return NoContent();
         }
 
-        // POST: api/Items
-        [HttpPost]
-        public async Task<IActionResult> CreateItem([FromBody] Item item)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            _repository.Add(item);
-            await _unitOfWork.SaveAsync();
-
-            return CreatedAtAction("CreateItem", new { id = item.Id }, item);
-        }
-
-        // DELETE: api/Items/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteItem([FromRoute] int id)
         {
-            var removed = await _repository.Remove(id);
+            var entity = await _repository.GetByIdAsync(id);
+            if (entity == null)
+            {
+                return BadRequest("The Item to be deleted does not exist");
+            }
+
+            _repository.Remove(entity);
 
             try
             {
-                if (!removed)
-                {
-                    return NotFound("The Item to be deleted was not found");
-                }
                 await _unitOfWork.SaveAsync();
                 return Ok();
             }

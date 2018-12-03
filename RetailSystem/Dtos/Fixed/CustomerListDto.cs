@@ -2,7 +2,7 @@
 
 namespace RetailSystem.Dtos
 {
-    public class CustomerListDto
+    public class CustomerListDto : EntityDto
     {
         //[Required]
         //public string CustomerNumber { get; set; }
@@ -23,6 +23,7 @@ namespace RetailSystem.Dtos
         public string Address { get; set; }
 
         public int BusinessId { get; set; }
+        public string BusinessName { get; set; }
 
     }
 }

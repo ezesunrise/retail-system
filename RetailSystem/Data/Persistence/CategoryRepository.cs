@@ -4,12 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace RetailSystem.Data
 {
-    public class CategoryRepository: IRepository<Category>
+    public class CategoryRepository : IRepository<Category>
     {
         private ApplicationDbContext _context { get; set; }
 
@@ -18,12 +18,12 @@ namespace RetailSystem.Data
             _context = context;
         }
 
-        public IQueryable<Category> GetAll()
+        public async Task<IEnumerable<Category>> GetAsync(Expression<Func<Category, bool>> predicate)
         {
-            return _context.Categories;
+            return await _context.Categories.Where(predicate).ToListAsync();
         }
 
-        public async Task<IEnumerable<Category>> GetAsync()
+        public async Task<IEnumerable<Category>> GetAllAsync()
         {
             return await _context.Categories.ToListAsync();
         }
@@ -34,41 +34,30 @@ namespace RetailSystem.Data
             return entity;
         }
 
-        //public DbEntityEntry<Category> Entry(T entity) {
-        //    return _context.Entry(entity);
-        //}
-
-        public void Add(Category category)
+        public void Add(Category entity)
         {
-            _context.Categories.Add(category);
+            _context.Categories.Add(entity);
         }
 
-        public void Update(Category category)
+        public void Update(Category entity)
         {
-            _context.Entry(category).State = EntityState.Modified;
+            _context.Entry(entity).State = EntityState.Modified;
         }
 
-        public async Task<bool> Remove(int id)
+        public void Remove(Category entity)
         {
-            var entity = await _context.Categories.FindAsync(id);
-            if (entity == null)
-            {
-                return false;
-            }
-
             _context.Categories.Remove(entity);
-            return true;
-        }
-        
-        public void AddRange(IEnumerable<Category> categories)
-        {
-            _context.AddRange(categories);
-            
         }
 
-        public Task RemoveRange(IEnumerable<int> ids)
+        public void AddRange(IEnumerable<Category> entities)
         {
-            throw new NotImplementedException();
+            _context.Categories.AddRange(entities);
+
+        }
+
+        public void RemoveRange(IEnumerable<Category> entities)
+        {
+            _context.Categories.RemoveRange(entities);
         }
 
         public Task<bool> Exists(int id)

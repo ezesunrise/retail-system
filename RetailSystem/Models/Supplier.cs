@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using RetailSystem.Models.Enums;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace RetailSystem.Models
@@ -30,6 +31,9 @@ namespace RetailSystem.Models
         public string AlternatePhoneNumber { get; set; }
 
         public string Address { get; set; }
+
+        public Status Status { get; set; }
+
 
         public int BusinessId { get; set; }
         public Business Business { get; set; }

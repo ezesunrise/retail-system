@@ -4,10 +4,10 @@ using System.Text;
 
 namespace RetailSystem.Models.Enums
 {
-    public enum LocationStatus
+    public enum PaymentStatus
     {
-        Active,
-        Inactive,
-        Ended
+        Pending,
+        Partial,
+        Paid
     }
 }

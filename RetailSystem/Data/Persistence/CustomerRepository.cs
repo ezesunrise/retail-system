@@ -4,12 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace RetailSystem.Data
 {
-    public class CustomerRepository: IRepository<Customer>
+    public class CustomerRepository : IRepository<Customer>
     {
         private ApplicationDbContext _context { get; set; }
 
@@ -18,12 +18,12 @@ namespace RetailSystem.Data
             _context = context;
         }
 
-        public IQueryable<Customer> GetAll()
+        public async Task<IEnumerable<Customer>> GetAsync(Expression<Func<Customer, bool>> predicate)
         {
-            return _context.Customers;
+            return await _context.Customers.Where(predicate).ToListAsync();
         }
 
-        public async Task<IEnumerable<Customer>> GetAsync()
+        public async Task<IEnumerable<Customer>> GetAllAsync()
         {
             return await _context.Customers.ToListAsync();
         }
@@ -34,58 +34,30 @@ namespace RetailSystem.Data
             return entity;
         }
 
-        //public DbEntityEntry<Customer> Entry(T entity) {
-        //    return _context.Entry(entity);
-        //}
-
-        public void Add(Customer customer)
+        public void Add(Customer entity)
         {
-            try
-            {
-                _context.Customers.Add(customer);
-                
-                
-            }
-            catch (DataException)
-            {
-                throw new DataException("An unexpected error occured. Could not be added.");
-            }
+            _context.Customers.Add(entity);
         }
 
-        public void Update(Customer customer)
+        public void Update(Customer entity)
         {
-            _context.Entry(customer).State = EntityState.Modified;
+            _context.Entry(entity).State = EntityState.Modified;
         }
 
-        public async Task<bool> Remove(int id)
+        public void Remove(Customer entity)
         {
-            var entity = await _context.Customers.FindAsync(id);
-            if (entity == null)
-            {
-                return false;
-            }
-
-            try
-            {
-                _context.Customers.Remove(entity);
-                
-                return true;
-            }
-            catch (DataException)
-            {
-                throw new DataException("An unexpected error occured. Could not delete.");
-            }
-        }
-        
-        public void AddRange(IEnumerable<Customer> customers)
-        {
-            _context.AddRange(customers);
-            
+            _context.Customers.Remove(entity);
         }
 
-        public Task RemoveRange(IEnumerable<int> ids)
+        public void AddRange(IEnumerable<Customer> entities)
         {
-            throw new NotImplementedException();
+            _context.Customers.AddRange(entities);
+
+        }
+
+        public void RemoveRange(IEnumerable<Customer> entities)
+        {
+            _context.Customers.RemoveRange(entities);
         }
 
         public Task<bool> Exists(int id)

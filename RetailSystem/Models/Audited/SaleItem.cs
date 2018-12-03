@@ -4,16 +4,12 @@ using System.ComponentModel.DataAnnotations;
 
 namespace RetailSystem.Models
 {
-    public class SaleItem : Entity
+    public class SaleItem
     {
-        [StringLength(512)]
-        public string Description { get; set; }
+        [Range(0, int.MaxValue)]
+        public int Quantity { get; set; }
 
-        [StringLength(512)]
-        public string Note { get; set; }
-        
-        public uint Quantity { get; set; }
-        
+        [Range(0, double.MaxValue)]
         public decimal UnitPrice { get; set; }
 
         public int ItemId { get; set; }

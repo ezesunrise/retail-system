@@ -4,12 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace RetailSystem.Data
 {
-    public class LocationRepository: IRepository<Location>
+    public class LocationRepository : IRepository<Location>
     {
         private ApplicationDbContext _context { get; set; }
 
@@ -18,12 +18,12 @@ namespace RetailSystem.Data
             _context = context;
         }
 
-        public IQueryable<Location> GetAll()
+        public async Task<IEnumerable<Location>> GetAsync(Expression<Func<Location, bool>> predicate)
         {
-            return _context.Locations;
+            return await _context.Locations.Where(predicate).ToListAsync();
         }
 
-        public async Task<IEnumerable<Location>> GetAsync()
+        public async Task<IEnumerable<Location>> GetAllAsync()
         {
             return await _context.Locations.ToListAsync();
         }
@@ -34,58 +34,30 @@ namespace RetailSystem.Data
             return entity;
         }
 
-        //public DbEntityEntry<Location> Entry(T entity) {
-        //    return _context.Entry(entity);
-        //}
-
-        public void Add(Location location)
+        public void Add(Location entity)
         {
-            try
-            {
-                _context.Locations.Add(location);
-                
-                
-            }
-            catch (DataException)
-            {
-                throw new DataException("An unexpected error occured. Could not be added.");
-            }
+            _context.Locations.Add(entity);
         }
 
-        public void Update(Location location)
+        public void Update(Location entity)
         {
-            _context.Entry(location).State = EntityState.Modified;
+            _context.Entry(entity).State = EntityState.Modified;
         }
 
-        public async Task<bool> Remove(int id)
+        public void Remove(Location entity)
         {
-            var entity = await _context.Locations.FindAsync(id);
-            if (entity == null)
-            {
-                return false;
-            }
-
-            try
-            {
-                _context.Locations.Remove(entity);
-                
-                return true;
-            }
-            catch (DataException)
-            {
-                throw new DataException("An unexpected error occured. Could not delete.");
-            }
-        }
-        
-        public void AddRange(IEnumerable<Location> locations)
-        {
-            _context.AddRange(locations);
-            
+            _context.Locations.Remove(entity);
         }
 
-        public Task RemoveRange(IEnumerable<int> ids)
+        public void AddRange(IEnumerable<Location> entities)
         {
-            throw new NotImplementedException();
+            _context.Locations.AddRange(entities);
+
+        }
+
+        public void RemoveRange(IEnumerable<Location> entities)
+        {
+            _context.Locations.RemoveRange(entities);
         }
 
         public Task<bool> Exists(int id)

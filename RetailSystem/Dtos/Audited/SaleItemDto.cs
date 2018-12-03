@@ -4,18 +4,16 @@ using System.ComponentModel.DataAnnotations;
 
 namespace RetailSystem.Dtos
 {
-    public class TransferItemDto
+    public class SaleItemDto
     {
-        [StringLength(512)]
-        public string Description { get; set; }
-
         public int Quantity { get; set; }
 
-        [StringLength(1024)]
-        public string Note { get; set; }
+        public decimal UnitPrice { get; set; }
+
+        public decimal ItemTotal { get => Quantity * UnitPrice; }
 
         public int ItemId { get; set; }
 
-        public int TransferId { get; set; }
+        public int SaleId { get; set; }
     }
 }

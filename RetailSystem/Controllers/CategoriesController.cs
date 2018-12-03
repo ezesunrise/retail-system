@@ -7,111 +7,128 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RetailSystem.Data;
+using RetailSystem.Dtos;
 using RetailSystem.Models;
 
 namespace RetailSystem.Controllers
 {
     [Produces("application/json")]
+    [Route("api/[controller]/[action]")]
     public class CategoriesController : Controller
     {
         private readonly IRepository<Category> _repository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public CategoriesController(IRepository<Category> repository)
+        public CategoriesController(IRepository<Category> repository, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _repository = repository;
-        }
-        
-        public async Task<IEnumerable<Category>> GetCategories()
-        {
-            return await _repository.GetAsync();
+            _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
-        // GET: api/Categories/5
+        [HttpGet]
+        public async Task<IEnumerable<CategoryListDto>> GetAllCategories()
+        {
+            var entities = await _repository.GetAllAsync();
+            return _mapper.Map<IEnumerable<CategoryListDto>>(entities);
+        }
+
+        [HttpGet]
+        public async Task<IEnumerable<CategoryListDto>> GetCategories(int businessId)
+        {
+            var entities = await _repository.GetAsync(c => c.BusinessId == businessId);
+            return _mapper.Map<IEnumerable<CategoryListDto>>(entities);
+        }
+
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetCategory([FromRoute] int id)
+        public async Task<IActionResult> GetCategoryById([FromRoute] int id)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var category = await _repository.GetByIdAsync(id);
+            var entity = await _repository.GetByIdAsync(id);
 
-            if (category == null)
+            if (entity == null)
             {
                 return NotFound();
             }
 
-            return Ok(category);
+            var entityDto = _mapper.Map<CategoryDto>(entity);
+            return Ok(entityDto);
         }
 
-        [HttpPut]
-        public async Task<IActionResult> UpdateCategory([FromRoute] int id, [FromBody] Category category)
+        [HttpPost]
+        public async Task<IActionResult> CreateCategory([FromBody] CategoryDto entityDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            if (id != category.Id)
+            var entity = _mapper.Map<Category>(entityDto);
+            try
+            {
+                _repository.Add(entity);
+                await _unitOfWork.SaveAsync();
+                return CreatedAtAction("GetCategoryById", new { id = entity.Id }, entity.Id);
+            }
+            catch (Exception e)
+            {
+                throw new Exception("An unexpected error occured. Could not be added.", e);
+            }
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateCategory([FromRoute] int id, [FromBody] CategoryDto entityDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (id != entityDto.Id)
             {
                 return BadRequest();
             }
 
-            _repository.Update(category);
+            var entity = await _repository.GetByIdAsync(entityDto.Id);
+            if (entity == null)
+            {
+                return NotFound("Category does not exist");
+            }
+
+            _mapper.Map(entityDto, entity);
+
             try
             {
+                _repository.Update(entity);
                 await _unitOfWork.SaveAsync();
             }
 
             catch (Exception)
             {
-                if (!await _repository.Exists(category.Id))
-                {
-                    return BadRequest("Category does not exist");
-                }
-
                 throw new Exception("An unexpected error occured. Could not update.");
             }
 
             return NoContent();
         }
 
-        [HttpPost]
-        public async Task<IActionResult> CreateCategory([FromBody] Category category)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            try
-            {
-                _repository.Add(category);
-                await _unitOfWork.SaveAsync();
-            }
-            catch (Exception e)
-            {
-                throw new Exception("An unexpected error occured. Could not be added.", e);
-            }
-
-            return CreatedAtAction("GetCategory", new { id = category.Id }, category);
-        }
-
-        // DELETE: api/Categories/5
-        [HttpDelete]
+        [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory([FromRoute] int id)
         {
-            var removed = await _repository.Remove(id);
+            var entity = await _repository.GetByIdAsync(id);
+            if (entity == null)
+            {
+                return BadRequest("The Category to be deleted does not exist");
+            }
+
+            _repository.Remove(entity);
 
             try
             {
-                if (!removed)
-                {
-                    return NotFound("The Category to be deleted was not found");
-                }
                 await _unitOfWork.SaveAsync();
                 return Ok();
             }

@@ -4,12 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace RetailSystem.Data
 {
-    public class InvoiceRepository : IRepository<Invoice>
+    public class InvoiceRepository : IAuditedRepository<Invoice>
     {
         private ApplicationDbContext _context { get; set; }
 
@@ -18,74 +18,48 @@ namespace RetailSystem.Data
             _context = context;
         }
 
-        public IQueryable<Invoice> GetAll()
+        public async Task<IEnumerable<Invoice>> GetAsync(Expression<Func<Invoice, bool>> predicate)
         {
-            return _context.Invoices;
+            return await _context.Invoices.Where(predicate).ToListAsync();
         }
 
-        public async Task<IEnumerable<Invoice>> GetAsync()
+        public async Task<IEnumerable<Invoice>> GetAllAsync()
         {
             return await _context.Invoices.ToListAsync();
         }
 
         public async Task<Invoice> GetByIdAsync(int id)
         {
-            var entity = await _context.Invoices.FindAsync(id);
+            var entity = await _context.Invoices
+                .Include(s => s.InvoiceItems)
+                .SingleOrDefaultAsync(s => s.Id == id);
             return entity;
         }
 
-        //public DbEntityEntry<Invoice> Entry(T entity) {
-        //    return _context.Entry(entity);
-        //}
-
-        public void Add(Invoice invoice)
+        public void Add(Invoice entity)
         {
-            try
-            {
-                _context.Invoices.Add(invoice);
-                
-
-            }
-            catch (DataException)
-            {
-                throw new DataException("An unexpected error occured. Could not be added.");
-            }
+            _context.Invoices.Add(entity);
         }
 
-        public void Update(Invoice invoice)
+        public void Update(Invoice entity)
         {
-            _context.Entry(invoice).State = EntityState.Modified;
+            _context.Entry(entity).State = EntityState.Modified;
         }
 
-        public async Task<bool> Remove(int id)
+        public void Remove(Invoice entity)
         {
-            var entity = await _context.Invoices.FindAsync(id);
-            if (entity == null)
-            {
-                return false;
-            }
-
-            try
-            {
-                _context.Invoices.Remove(entity);
-                
-                return true;
-            }
-            catch (DataException)
-            {
-                throw new DataException("An unexpected error occured. Could not delete.");
-            }
+            _context.Invoices.Remove(entity);
         }
 
-        public void AddRange(IEnumerable<Invoice> invoices)
+        public void AddRange(IEnumerable<Invoice> entities)
         {
-            _context.AddRange(invoices);
-            
+            _context.Invoices.AddRange(entities);
+
         }
 
-        public Task RemoveRange(IEnumerable<int> ids)
+        public void RemoveRange(IEnumerable<Invoice> entities)
         {
-            throw new NotImplementedException();
+            _context.Invoices.RemoveRange(entities);
         }
 
         public Task<bool> Exists(int id)

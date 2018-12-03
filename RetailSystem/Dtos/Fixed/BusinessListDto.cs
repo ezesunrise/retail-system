@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using RetailSystem.Models.Enums;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
@@ -13,5 +14,7 @@ namespace RetailSystem.Dtos
         [StringLength(256)]
         public string Description { get; set; }
 
+        public Status Status { get; set; }
+        public string StatusName { get => Status.ToString(); }
     }
 }

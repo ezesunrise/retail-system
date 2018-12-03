@@ -4,12 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace RetailSystem.Data
 {
-    public class TransferRepository: IRepository<Transfer>
+    public class TransferRepository : IAuditedRepository<Transfer>
     {
         private ApplicationDbContext _context { get; set; }
 
@@ -18,72 +18,48 @@ namespace RetailSystem.Data
             _context = context;
         }
 
-        public IQueryable<Transfer> GetAll()
+        public async Task<IEnumerable<Transfer>> GetAsync(Expression<Func<Transfer, bool>> predicate)
         {
-            return _context.Transfers;
+            return await _context.Transfers.Where(predicate).ToListAsync();
         }
 
-        public async Task<IEnumerable<Transfer>> GetAsync()
+        public async Task<IEnumerable<Transfer>> GetAllAsync()
         {
             return await _context.Transfers.ToListAsync();
         }
 
         public async Task<Transfer> GetByIdAsync(int id)
         {
-            var entity = await _context.Transfers.FindAsync(id);
+            var entity = await _context.Transfers
+                .Include(s => s.TransferItems)
+                .SingleOrDefaultAsync(s => s.Id == id);
             return entity;
         }
 
-        //public DbEntityEntry<Transfer> Entry(T entity) {
-        //    return _context.Entry(entity);
-        //}
-
-        public void Add(Transfer transfer)
+        public void Add(Transfer entity)
         {
-            try
-            {
-                _context.Transfers.Add(transfer);
-                
-                
-            }
-            catch (DataException)
-            {
-                throw new DataException("An unexpected error occured. Could not be added.");
-            }
+            _context.Transfers.Add(entity);
         }
 
-        public void Update(Transfer transfer)
+        public void Update(Transfer entity)
         {
-            _context.Entry(transfer).State = EntityState.Modified;
+            _context.Entry(entity).State = EntityState.Modified;
         }
 
-        public async Task<bool> Remove(int id)
+        public void Remove(Transfer entity)
         {
-            var entity = await _context.Transfers.FindAsync(id);
-            if (entity == null)
-            {
-                return false;
-            }
-
-            try
-            {
-                _context.Transfers.Remove(entity);
-                return true;
-            }
-            catch (DataException)
-            {
-                throw new DataException("An unexpected error occured. Could not delete.");
-            }
-        }
-        
-        public void AddRange(IEnumerable<Transfer> transfers)
-        {
-            _context.AddRange(transfers);
+            _context.Transfers.Remove(entity);
         }
 
-        public Task RemoveRange(IEnumerable<int> ids)
+        public void AddRange(IEnumerable<Transfer> entities)
         {
-            throw new NotImplementedException();
+            _context.Transfers.AddRange(entities);
+
+        }
+
+        public void RemoveRange(IEnumerable<Transfer> entities)
+        {
+            _context.Transfers.RemoveRange(entities);
         }
 
         public Task<bool> Exists(int id)

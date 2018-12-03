@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using RetailSystem.Data;
 using RetailSystem.Dtos;
 using RetailSystem.Models;
@@ -12,106 +13,122 @@ using RetailSystem.Models;
 namespace RetailSystem.Controllers
 {
     [Produces("application/json")]
+    [Route("api/[controller]/[action]")]
     public class ManufacturersController : Controller
     {
         private readonly IRepository<Manufacturer> _repository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public ManufacturersController(IRepository<Manufacturer> repository, IMapper mapper)
+        public ManufacturersController(IRepository<Manufacturer> repository, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _repository = repository;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
-        // GET: api/Manufacturers
         [HttpGet]
-        public async Task<IEnumerable<ManufacturerDto>> GetManufacturers()
+        public async Task<IEnumerable<ManufacturerListDto>> GetAllManufacturers()
         {
-            var manufacturersInDb = await _repository.GetAsync();
-            return _mapper.Map<IEnumerable<Manufacturer>, IEnumerable<ManufacturerDto>>(manufacturersInDb);
+            var entities = await _repository.GetAllAsync();
+            return _mapper.Map<IEnumerable<ManufacturerListDto>>(entities);
         }
 
-        // GET: api/Manufacturers/5
+        [HttpGet]
+        public async Task<IEnumerable<ManufacturerListDto>> GetManufacturers(int businessId)
+        {
+            var entities = await _repository.GetAsync(m => m.BusinessId == businessId);
+            return _mapper.Map<IEnumerable<ManufacturerListDto>>(entities);
+        }
+
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetManufacturer([FromRoute] int id)
+        public async Task<IActionResult> GetManufacturerById([FromRoute] int id)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var manufacturer = await _repository.GetByIdAsync(id);
+            var entity = await _repository.GetByIdAsync(id);
 
-            if (manufacturer == null)
+            if (entity == null)
             {
                 return NotFound();
             }
 
-            return Ok(_mapper.Map<Manufacturer, ManufacturerDto>(manufacturer));
+            var entityDto = _mapper.Map<ManufacturerDto>(entity);
+            return Ok(entityDto);
         }
 
-        // PUT: api/Manufacturers/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateManufacturer([FromRoute] int id, [FromBody] Manufacturer manufacturer)
+        [HttpPost]
+        public async Task<IActionResult> CreateManufacturer([FromBody] ManufacturerDto entityDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            if (id != manufacturer.Id)
+            var entity = _mapper.Map<Manufacturer>(entityDto);
+            try
+            {
+                _repository.Add(entity);
+                await _unitOfWork.SaveAsync();
+                return CreatedAtAction("GetManufacturerById", new { id = entity.Id }, entity.Id);
+            }
+            catch (Exception e)
+            {
+                throw new Exception("An unexpected error occured. Could not be added.", e);
+            }
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateManufacturer([FromRoute] int id, [FromBody] ManufacturerDto entityDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (id != entityDto.Id)
             {
                 return BadRequest();
             }
 
-            _repository.Update(manufacturer);
+            var entity = await _repository.GetByIdAsync(entityDto.Id);
+            if (entity == null)
+            {
+                return NotFound("Manufacturer does not exist");
+            }
+
+            _mapper.Map(entityDto, entity);
 
             try
             {
+                _repository.Update(entity);
                 await _unitOfWork.SaveAsync();
             }
 
             catch (Exception)
             {
-                if (!await _repository.Exists(manufacturer.Id))
-                {
-                    return BadRequest("Manufacturer does not exist");
-                }
-
                 throw new Exception("An unexpected error occured. Could not update.");
             }
 
-            return NotFound();
+            return NoContent();
         }
 
-        // POST: api/Manufacturers
-        [HttpPost]
-        public async Task<IActionResult> CreateManufacturer([FromBody] Manufacturer manufacturer)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            _repository.Add(manufacturer);
-            await _unitOfWork.SaveAsync();
-
-            return CreatedAtAction("GetManufacturer", new { id = manufacturer.Id }, manufacturer);
-        }
-
-        // DELETE: api/Manufacturers/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteManufacturer([FromRoute] int id)
         {
-            var removed = await _repository.Remove(id);
+            var entity = await _repository.GetByIdAsync(id);
+            if (entity == null)
+            {
+                return BadRequest("The Manufacturer to be deleted does not exist");
+            }
+
+            _repository.Remove(entity);
 
             try
             {
-                if (!removed)
-                {
-                    return NotFound("The Manufacturer to be deleted was not found");
-                }
                 await _unitOfWork.SaveAsync();
                 return Ok();
             }
@@ -120,6 +137,6 @@ namespace RetailSystem.Controllers
                 throw new Exception("An unexpected error occured. Could not delete.");
             }
         }
-        
+
     }
 }

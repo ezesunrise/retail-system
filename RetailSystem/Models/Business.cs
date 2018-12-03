@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using RetailSystem.Models.Enums;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
@@ -21,6 +22,8 @@ namespace RetailSystem.Models
         
         [StringLength(256)]
         public string Description { get; set; }
+
+        public Status Status { get; set; }
 
         public byte[] Logo { get; set; }
 

@@ -13,6 +13,12 @@
   <ItemGroup>
     <Compile Remove="Migrations\20181127201140_Initial.cs" />
     <Compile Remove="Migrations\20181127201140_Initial.Designer.cs" />
+    <Compile Remove="Migrations\20181202034744_RemovedNullables.cs" />
+    <Compile Remove="Migrations\20181202034744_RemovedNullables.Designer.cs" />
+    <Compile Remove="Migrations\20181202035546_RemovedNullablesAndAdedDiscount.cs" />
+    <Compile Remove="Migrations\20181202035546_RemovedNullablesAndAdedDiscount.Designer.cs" />
+    <Compile Remove="Migrations\20181203155436_AddedUniqueIndicesAndProperties.cs" />
+    <Compile Remove="Migrations\20181203155436_AddedUniqueIndicesAndProperties.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -7,110 +7,128 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RetailSystem.Data;
+using RetailSystem.Dtos;
 using RetailSystem.Models;
 
 namespace RetailSystem.Controllers
 {
     [Produces("application/json")]
-    [Route("api/ReportGroups")]
-    public class ReportsController : Controller
+    [Route("api/[controller]/[action]")]
+    public class ReportGroupsController : Controller
     {
         private readonly IRepository<ReportGroup> _repository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public ReportsController(IRepository<ReportGroup> repository)
+        public ReportGroupsController(IRepository<ReportGroup> repository, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _repository = repository;
+            _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
-        // GET: api/ReportGroups
         [HttpGet]
-        public async Task<IEnumerable<ReportGroup>> GetReportGroups()
+        public async Task<IEnumerable<ReportGroupDto>> GetAllReportGroups()
         {
-            return await _repository.GetAsync();
+            var entities = await _repository.GetAllAsync();
+            return _mapper.Map<IEnumerable<ReportGroupDto>>(entities);
         }
 
-        // GET: api/ReportGroups/5
+        [HttpGet]
+        public async Task<IEnumerable<ReportGroupDto>> GetReportGroups(int value)
+        {
+            var entities = await _repository.GetAsync(v => v.Id == value);
+            return _mapper.Map<IEnumerable<ReportGroupDto>>(entities);
+        }
+
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetReportGroup([FromRoute] int id)
+        public async Task<IActionResult> GetReportGroupById([FromRoute] int id)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var reportGroup = await _repository.GetByIdAsync(id);
+            var entity = await _repository.GetByIdAsync(id);
 
-            if (reportGroup == null)
+            if (entity == null)
             {
                 return NotFound();
             }
 
-            return Ok(reportGroup);
+            var entityDto = _mapper.Map<ReportGroupDto>(entity);
+            return Ok(entityDto);
         }
 
-        // PUT: api/ReportGroups/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateReportGroup([FromRoute] int id, [FromBody] ReportGroup reportGroup)
+        [HttpPost]
+        public async Task<IActionResult> CreateReportGroup([FromBody] ReportGroupDto entityDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            if (id != reportGroup.Id)
+            var entity = _mapper.Map<ReportGroup>(entityDto);
+            try
+            {
+                _repository.Add(entity);
+                await _unitOfWork.SaveAsync();
+                return CreatedAtAction("GetReportGroupById", new { id = entity.Id }, entity.Id);
+            }
+            catch (Exception e)
+            {
+                throw new Exception("An unexpected error occured. Could not be added.", e);
+            }
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateReportGroup([FromRoute] int id, [FromBody] ReportGroupDto entityDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (id != entityDto.Id)
             {
                 return BadRequest();
             }
 
-            _repository.Update(reportGroup);
+            var entity = await _repository.GetByIdAsync(entityDto.Id);
+            if (entity == null)
+            {
+                return NotFound("Report does not exist");
+            }
+
+            _mapper.Map(entityDto, entity);
 
             try
             {
+                _repository.Update(entity);
                 await _unitOfWork.SaveAsync();
             }
 
             catch (Exception)
             {
-                if (!await _repository.Exists(reportGroup.Id))
-                {
-                    return BadRequest("Report does not exist");
-                }
-
                 throw new Exception("An unexpected error occured. Could not update.");
             }
 
-            return NotFound();
+            return NoContent();
         }
 
-        // POST: api/ReportGroups
-        [HttpPost]
-        public async Task<IActionResult> CreateReportGroup([FromBody] ReportGroup reportGroup)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            _repository.Add(reportGroup);
-            await _unitOfWork.SaveAsync();
-
-            return CreatedAtAction("GetReportGroup", new { id = reportGroup.Id }, reportGroup);
-        }
-
-        // DELETE: api/ReportGroups/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteReportGroup([FromRoute] int id)
         {
-            var removed = await _repository.Remove(id);
+            var entity = await _repository.GetByIdAsync(id);
+            if (entity == null)
+            {
+                return BadRequest("The Report to be deleted does not exist");
+            }
+
+            _repository.Remove(entity);
 
             try
             {
-                if (!removed)
-                {
-                    return NotFound("The Report to be deleted was not found");
-                }
                 await _unitOfWork.SaveAsync();
                 return Ok();
             }

@@ -12,9 +12,8 @@ namespace RetailSystem.Models
         {
             LocationItems = new HashSet<LocationItem>();
             SaleItems = new HashSet<SaleItem>();
-            PurchaseItems = new HashSet<PurchaseItem>();
+            PurchaseOrderItems = new HashSet<PurchaseOrderItem>();
             TransferItems = new HashSet<TransferItem>();
-            OrderItems = new HashSet<OrderItem>();
             InvoiceItems = new HashSet<InvoiceItem>();
         }
 
@@ -25,11 +24,14 @@ namespace RetailSystem.Models
         [Required]
         [StringLength(256)]
         public string Description { get; set; }
-        
-        public decimal UnitCost { get; set; }
-        public decimal? UnitPrice { get; set; }
 
-        public byte? Tax { get; set; }
+        [Range(0, double.MaxValue)]
+        public decimal UnitCost { get; set; }
+        [Range(0, double.MaxValue)]
+        public decimal UnitPrice { get; set; }
+
+        [Range(0, 100)]
+        public byte Tax { get; set; }
         
         public int UnitId { get; set; }
         public virtual Unit Unit { get; set; }
@@ -54,9 +56,8 @@ namespace RetailSystem.Models
 
         public virtual ICollection<LocationItem> LocationItems { get; set; }
         public virtual ICollection<SaleItem> SaleItems { get; set; }
-        public virtual ICollection<PurchaseItem> PurchaseItems { get; set; }
+        public virtual ICollection<PurchaseOrderItem> PurchaseOrderItems { get; set; }
         public virtual ICollection<TransferItem> TransferItems { get; set; }
-        public virtual ICollection<OrderItem> OrderItems { get; set; }
         public virtual ICollection<InvoiceItem> InvoiceItems { get; set; }
     }
 }

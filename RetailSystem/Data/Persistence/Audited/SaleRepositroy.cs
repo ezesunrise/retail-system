@@ -4,12 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace RetailSystem.Data
 {
-    public class SaleRepository: IRepository<Sale>
+    public class SaleRepository : IAuditedRepository<Sale>
     {
         private ApplicationDbContext _context { get; set; }
 
@@ -18,74 +18,48 @@ namespace RetailSystem.Data
             _context = context;
         }
 
-        public IQueryable<Sale> GetAll()
+        public async Task<IEnumerable<Sale>> GetAsync(Expression<Func<Sale, bool>> predicate)
         {
-            return _context.Sales;
+            return await _context.Sales.Where(predicate).ToListAsync();
         }
 
-        public async Task<IEnumerable<Sale>> GetAsync()
+        public async Task<IEnumerable<Sale>> GetAllAsync()
         {
             return await _context.Sales.ToListAsync();
         }
 
         public async Task<Sale> GetByIdAsync(int id)
         {
-            var entity = await _context.Sales.FindAsync(id);
+            var entity = await _context.Sales
+                .Include(s => s.SaleItems)
+                .SingleOrDefaultAsync(s => s.Id == id);
             return entity;
         }
 
-        //public DbEntityEntry<Sale> Entry(T entity) {
-        //    return _context.Entry(entity);
-        //}
-        
-        public void Add(Sale sale)
+        public void Add(Sale entity)
         {
-            try
-            {
-                _context.Sales.Add(sale);
-                
-                
-            }
-            catch (DataException)
-            {
-                throw new DataException("An unexpected error occured. Could not be added.");
-            }
+            _context.Sales.Add(entity);
         }
 
-        public void Update(Sale sale)
+        public void Update(Sale entity)
         {
-            _context.Entry(sale).State = EntityState.Modified;
+            _context.Entry(entity).State = EntityState.Modified;
         }
 
-        public async Task<bool> Remove(int id)
+        public void Remove(Sale entity)
         {
-            var entity = await _context.Sales.FindAsync(id);
-            if (entity == null)
-            {
-                return false;
-            }
-
-            try
-            {
-                _context.Sales.Remove(entity);
-                
-                return true;
-            }
-            catch (DataException)
-            {
-                throw new DataException("An unexpected error occured. Could not delete.");
-            }
-        }
-        
-        public void AddRange(IEnumerable<Sale> sales)
-        {
-            _context.AddRange(sales);
-            
+            _context.Sales.Remove(entity);
         }
 
-        public Task RemoveRange(IEnumerable<int> ids)
+        public void AddRange(IEnumerable<Sale> entities)
         {
-            throw new NotImplementedException();
+            _context.Sales.AddRange(entities);
+
+        }
+
+        public void RemoveRange(IEnumerable<Sale> entities)
+        {
+            _context.Sales.RemoveRange(entities);
         }
 
         public Task<bool> Exists(int id)

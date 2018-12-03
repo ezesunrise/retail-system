@@ -669,7 +669,7 @@ namespace RetailSystem.Migrations
                     Status = table.Column<int>(nullable: false),
                     IssueDate = table.Column<DateTime>(nullable: false),
                     ExpectedReceiptDate = table.Column<DateTime>(nullable: true),
-                    PurchaseId = table.Column<int>(nullable: true),
+                    PurchaseOrderId = table.Column<int>(nullable: true),
                     LocationId = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
@@ -688,8 +688,8 @@ namespace RetailSystem.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Orders_Purchases_PurchaseId",
-                        column: x => x.PurchaseId,
+                        name: "FK_Orders_Purchases_PurchaseOrderId",
+                        column: x => x.PurchaseOrderId,
                         principalTable: "Purchases",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -709,7 +709,7 @@ namespace RetailSystem.Migrations
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
                     Note = table.Column<string>(maxLength: 512, nullable: true),
                     ItemId = table.Column<int>(nullable: false),
-                    PurchaseId = table.Column<int>(nullable: false)
+                    PurchaseOrderId = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -721,8 +721,8 @@ namespace RetailSystem.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_PurchaseItems_Purchases_PurchaseId",
-                        column: x => x.PurchaseId,
+                        name: "FK_PurchaseItems_Purchases_PurchaseOrderId",
+                        column: x => x.PurchaseOrderId,
                         principalTable: "Purchases",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -960,11 +960,11 @@ namespace RetailSystem.Migrations
                 column: "LocationId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Orders_PurchaseId",
+                name: "IX_Orders_PurchaseOrderId",
                 table: "Orders",
-                column: "PurchaseId",
+                column: "PurchaseOrderId",
                 unique: true,
-                filter: "[PurchaseId] IS NOT NULL");
+                filter: "[PurchaseOrderId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Orders_UpdaterId",
@@ -977,9 +977,9 @@ namespace RetailSystem.Migrations
                 column: "ItemId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PurchaseItems_PurchaseId",
+                name: "IX_PurchaseItems_PurchaseOrderId",
                 table: "PurchaseItems",
-                column: "PurchaseId");
+                column: "PurchaseOrderId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Purchases_CreatorId",

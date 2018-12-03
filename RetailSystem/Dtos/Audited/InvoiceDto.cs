@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace RetailSystem.Dtos
 {
-    public class InvoiceDto
+    public class InvoiceDto : EntityDto
     {
         [Required]
         public string ReferenceNumber { get; set; }

@@ -2,7 +2,7 @@
 
 namespace RetailSystem.Models
 {
-    public class ReportItem : Entity
+    public class ReportItem
     {
         public int ItemId { get; set; }
         public Item Item { get; set; }

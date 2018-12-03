@@ -10,21 +10,25 @@ namespace RetailSystem.Models
     {
         public Location()
         {
-            Status = LocationStatus.Active;
+            Status = Status.Active;
             LocationItems = new HashSet<LocationItem>();
             Sales = new HashSet<Sale>();
-            Orders = new HashSet<Order>();
             OutgoingTransfers = new HashSet<Transfer>();
             IncomingTransfers = new HashSet<Transfer>();
-            Purchases = new HashSet<Purchase>();
+            PurchaseOrders = new HashSet<PurchaseOrder>();
             Invoices = new HashSet<Invoice>();
             Users = new HashSet<IdentityUser>();
         }
-        
+
+        [Required]
         public string Name { get; set; }
 
+        [Required]
+        [StringLength(5, MinimumLength = 5)]
+        public string Code { get; set; }
+
         public LocationType Type { get; set; }
-        public LocationStatus Status { get; set; }
+        public Status Status { get; set; }
 
         public decimal? Target { get; set; }
         public TargetType? TargetType { get; set; }
@@ -44,8 +48,7 @@ namespace RetailSystem.Models
 
         public ICollection<LocationItem> LocationItems { get; set; }
         public ICollection<Sale> Sales { get; set; }
-        public ICollection<Order> Orders { get; set; }
-        public ICollection<Purchase> Purchases { get; set; }
+        public ICollection<PurchaseOrder> PurchaseOrders { get; set; }
         public ICollection<Invoice> Invoices { get; set; }
         public ICollection<IdentityUser> Users { get; set; }
         

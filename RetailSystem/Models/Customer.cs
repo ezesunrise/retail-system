@@ -5,6 +5,7 @@ namespace RetailSystem.Models
     public class Customer : Entity
     {
         //[Required]
+        //[StringLength(7, MinimumLength = 7)]
         //public string CustomerNumber { get; set; }
 
         [Required]

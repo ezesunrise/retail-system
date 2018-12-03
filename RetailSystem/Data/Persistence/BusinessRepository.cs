@@ -4,12 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace RetailSystem.Data
 {
-    public class BusinessRepository: IRepository<Business>
+    public class BusinessRepository : IRepository<Business>
     {
         private ApplicationDbContext _context { get; set; }
 
@@ -18,12 +18,12 @@ namespace RetailSystem.Data
             _context = context;
         }
 
-        public IQueryable<Business> GetAll()
+        public async Task<IEnumerable<Business>> GetAsync(Expression<Func<Business, bool>> predicate)
         {
-            return _context.Businesses;
+            return await _context.Businesses.Where(predicate).ToListAsync();
         }
 
-        public async Task<IEnumerable<Business>> GetAsync()
+        public async Task<IEnumerable<Business>> GetAllAsync()
         {
             return await _context.Businesses.ToListAsync();
         }
@@ -34,56 +34,30 @@ namespace RetailSystem.Data
             return entity;
         }
 
-        //public DbEntityEntry<Business> Entry(T entity) {
-        //    return _context.Entry(entity);
-        //}
-        
-        public void Add(Business business)
+        public void Add(Business entity)
         {
-            try
-            {
-                _context.Businesses.Add(business);                
-            }
-            catch (DataException)
-            {
-                throw new DataException("An unexpected error occured. Could not be added.");
-            }
+            _context.Businesses.Add(entity);
         }
 
-        public void Update(Business business)
+        public void Update(Business entity)
         {
-            _context.Entry(business).State = EntityState.Modified;
+            _context.Entry(entity).State = EntityState.Modified;
         }
 
-        public async Task<bool> Remove(int id)
+        public void Remove(Business entity)
         {
-            var entity = await _context.Businesses.FindAsync(id);
-            if (entity == null)
-            {
-                return false;
-            }
-
-            try
-            {
-                _context.Businesses.Remove(entity);
-                
-                return true;
-            }
-            catch (DataException)
-            {
-                throw new DataException("An unexpected error occured. Could not delete.");
-            }
-        }
-        
-        public void AddRange(IEnumerable<Business> businesses)
-        {
-            _context.AddRange(businesses);
-            
+            _context.Businesses.Remove(entity);
         }
 
-        public Task RemoveRange(IEnumerable<int> ids)
+        public void AddRange(IEnumerable<Business> entities)
         {
-            throw new NotImplementedException();
+            _context.Businesses.AddRange(entities);
+
+        }
+
+        public void RemoveRange(IEnumerable<Business> entities)
+        {
+            _context.Businesses.RemoveRange(entities);
         }
 
         public Task<bool> Exists(int id)

@@ -16,6 +16,6 @@ namespace RetailSystem.Dtos
         [Required]
         public int Quantity { get; set; }
 
-        public decimal TotalPrice { get => Item.UnitPrice .Value * Quantity; }
+        public decimal TotalPrice { get => Item.UnitPrice * Quantity; }
     }
 }

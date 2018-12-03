@@ -15,12 +15,9 @@ namespace RetailSystem.Models
         }
 
         [Required]
-        public string ReferenceNumber { get; set; }
+        public string TransferNumber { get; set; }
 
         [StringLength(512)]
-        public string Description { get; set; }
-
-        [StringLength(1024)]
         public string Note { get; set; }
 
         public OrderStatus Status { get; set; }

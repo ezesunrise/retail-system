@@ -4,12 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace RetailSystem.Data
 {
-    public class ReportGroupRepository: IRepository<ReportGroup>
+    public class ReportGroupRepository : IRepository<ReportGroup>
     {
         private ApplicationDbContext _context { get; set; }
 
@@ -18,12 +18,12 @@ namespace RetailSystem.Data
             _context = context;
         }
 
-        public IQueryable<ReportGroup> GetAll()
+        public async Task<IEnumerable<ReportGroup>> GetAsync(Expression<Func<ReportGroup, bool>> predicate)
         {
-            return _context.ReportGroups;
+            return await _context.ReportGroups.Where(predicate).ToListAsync();
         }
 
-        public async Task<IEnumerable<ReportGroup>> GetAsync()
+        public async Task<IEnumerable<ReportGroup>> GetAllAsync()
         {
             return await _context.ReportGroups.ToListAsync();
         }
@@ -34,58 +34,30 @@ namespace RetailSystem.Data
             return entity;
         }
 
-        //public DbEntityEntry<ReportGroup> Entry(T entity) {
-        //    return _context.Entry(entity);
-        //}
-
-        public void Add(ReportGroup report)
+        public void Add(ReportGroup entity)
         {
-            try
-            {
-                _context.ReportGroups.Add(report);
-                
-                
-            }
-            catch (DataException)
-            {
-                throw new DataException("An unexpected error occured. Could not be added.");
-            }
+            _context.ReportGroups.Add(entity);
         }
 
-        public void Update(ReportGroup report)
+        public void Update(ReportGroup entity)
         {
-            _context.Entry(report).State = EntityState.Modified;
+            _context.Entry(entity).State = EntityState.Modified;
         }
 
-        public async Task<bool> Remove(int id)
+        public void Remove(ReportGroup entity)
         {
-            var entity = await _context.ReportGroups.FindAsync(id);
-            if (entity == null)
-            {
-                return false;
-            }
-
-            try
-            {
-                _context.ReportGroups.Remove(entity);
-                
-                return true;
-            }
-            catch (DataException)
-            {
-                throw new DataException("An unexpected error occured. Could not delete.");
-            }
-        }
-        
-        public void AddRange(IEnumerable<ReportGroup> reports)
-        {
-            _context.AddRange(reports);
-            
+            _context.ReportGroups.Remove(entity);
         }
 
-        public Task RemoveRange(IEnumerable<int> ids)
+        public void AddRange(IEnumerable<ReportGroup> entities)
         {
-            throw new NotImplementedException();
+            _context.ReportGroups.AddRange(entities);
+
+        }
+
+        public void RemoveRange(IEnumerable<ReportGroup> entities)
+        {
+            _context.ReportGroups.RemoveRange(entities);
         }
 
         public Task<bool> Exists(int id)

@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace RetailSystem.Dtos
 {
-    public class CategoryListDto
+    public class CategoryListDto : EntityDto
     {
         [Required]
         [StringLength(64)]
@@ -14,5 +14,6 @@ namespace RetailSystem.Dtos
         public string Description { get; set; }
 
         public int BusinessId { get; set; }
+        public string BusinessName { get; set; }
     }
 }

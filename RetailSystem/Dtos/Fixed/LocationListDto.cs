@@ -1,14 +1,18 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using RetailSystem.Models.Enums;
 using System.Collections.Generic;
 
 namespace RetailSystem.Dtos
 {
-    public class LocationListDto
+    public class LocationListDto : EntityDto
     {
         public string Name { get; set; }
 
         public int Type { get; set; }
-        public int Status { get; set; }
+        public string TypeName { get => Type.ToString(); }
+
+        public Status Status { get; set; }
+        public string StatusName { get => Status.ToString(); }
 
         public decimal? Target { get; set; }
         public int? TargetType { get; set; }
@@ -22,5 +26,6 @@ namespace RetailSystem.Dtos
         public string ContactPerson { get; set; }
 
         public int BusinessId { get; set; }
+        public string BusinessName { get; set; }
     }
 }

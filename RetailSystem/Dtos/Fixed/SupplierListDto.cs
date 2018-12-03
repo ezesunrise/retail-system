@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using RetailSystem.Models.Enums;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace RetailSystem.Dtos
 {
-    public class SupplierListDto
+    public class SupplierListDto : EntityDto
     {
         [Required]
         public string SupplierCode { get; set; }
@@ -23,7 +24,11 @@ namespace RetailSystem.Dtos
 
         public string Address { get; set; }
 
+        public Status Status { get; set; }
+        public string StatusName { get => Status.ToString(); }
+
         public int BusinessId { get; set; }
-        
+        public string BusinessName { get; set; }
+
     }
 }

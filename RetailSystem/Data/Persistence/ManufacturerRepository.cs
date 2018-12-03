@@ -4,12 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace RetailSystem.Data
 {
-    public class ManufacturerRepository: IRepository<Manufacturer>
+    public class ManufacturerRepository : IRepository<Manufacturer>
     {
         private ApplicationDbContext _context { get; set; }
 
@@ -18,12 +18,12 @@ namespace RetailSystem.Data
             _context = context;
         }
 
-        public IQueryable<Manufacturer> GetAll()
+        public async Task<IEnumerable<Manufacturer>> GetAsync(Expression<Func<Manufacturer, bool>> predicate)
         {
-            return _context.Manufacturers;
+            return await _context.Manufacturers.Where(predicate).ToListAsync();
         }
 
-        public async Task<IEnumerable<Manufacturer>> GetAsync()
+        public async Task<IEnumerable<Manufacturer>> GetAllAsync()
         {
             return await _context.Manufacturers.ToListAsync();
         }
@@ -34,58 +34,30 @@ namespace RetailSystem.Data
             return entity;
         }
 
-        //public DbEntityEntry<Manufacturer> Entry(T entity) {
-        //    return _context.Entry(entity);
-        //}
-
-        public void Add(Manufacturer manufacturer)
+        public void Add(Manufacturer entity)
         {
-            try
-            {
-                _context.Manufacturers.Add(manufacturer);
-                
-                
-            }
-            catch (DataException)
-            {
-                throw new DataException("An unexpected error occured. Could not be added.");
-            }
+            _context.Manufacturers.Add(entity);
         }
 
-        public void Update(Manufacturer manufacturer)
+        public void Update(Manufacturer entity)
         {
-            _context.Entry(manufacturer).State = EntityState.Modified;
+            _context.Entry(entity).State = EntityState.Modified;
         }
 
-        public async Task<bool> Remove(int id)
+        public void Remove(Manufacturer entity)
         {
-            var entity = await _context.Manufacturers.FindAsync(id);
-            if (entity == null)
-            {
-                return false;
-            }
-
-            try
-            {
-                _context.Manufacturers.Remove(entity);
-                
-                return true;
-            }
-            catch (DataException)
-            {
-                throw new DataException("An unexpected error occured. Could not delete.");
-            }
-        }
-        
-        public void AddRange(IEnumerable<Manufacturer> manufacturers)
-        {
-            _context.AddRange(manufacturers);
-            
+            _context.Manufacturers.Remove(entity);
         }
 
-        public Task RemoveRange(IEnumerable<int> ids)
+        public void AddRange(IEnumerable<Manufacturer> entities)
         {
-            throw new NotImplementedException();
+            _context.Manufacturers.AddRange(entities);
+
+        }
+
+        public void RemoveRange(IEnumerable<Manufacturer> entities)
+        {
+            _context.Manufacturers.RemoveRange(entities);
         }
 
         public Task<bool> Exists(int id)

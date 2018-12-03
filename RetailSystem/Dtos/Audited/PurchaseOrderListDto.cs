@@ -1,11 +1,13 @@
-﻿using System;
+﻿using RetailSystem.Models.Enums;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace RetailSystem.Dtos
 {
-    public class Order 
+    public class PurchaseOrderListDto : EntityDto
     {
+
         public string OrderNumber { get; set; }
 
         public string Description { get; set; }
@@ -13,16 +15,16 @@ namespace RetailSystem.Dtos
         [StringLength(1024)]
         public string Note { get; set; }
 
-        public int Status { get; set; }
-        public IList<KeyValuePairDto> Statuses { get; set; }
+        public OrderStatus OrderStatus { get; set; }
+        public string OrderStatusName { get => OrderStatus.ToString(); }
+
+        public int PaymentStatus { get; set; }
+        public string PaymentStatusName { get => PaymentStatus.ToString(); }
 
         public DateTime IssueDate { get; set; }
         public DateTime? ExpectedReceiptDate { get; set; }
 
-        public int? PurchaseId { get; set; }
-
         public int LocationId { get; set; }
-        public IList<KeyValuePairDto> Locations { get; set; }
-
+        public string LocationName { get; set; }
     }
 }

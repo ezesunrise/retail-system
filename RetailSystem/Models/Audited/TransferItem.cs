@@ -4,14 +4,12 @@ using System.ComponentModel.DataAnnotations;
 
 namespace RetailSystem.Models
 {
-    public class TransferItem : Entity
+    public class TransferItem
     {
-        [StringLength(512)]
-        public string Description { get; set; }
-
+        [Range(0, int.MaxValue)]
         public int Quantity { get; set; }
 
-        [StringLength(1024)]
+        [StringLength(256)]
         public string Note { get; set; }
 
         public int ItemId { get; set; }

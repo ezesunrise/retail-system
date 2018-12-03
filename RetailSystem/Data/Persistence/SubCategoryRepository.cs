@@ -4,12 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace RetailSystem.Data
 {
-    public class SubCategoryRepository: IRepository<SubCategory>
+    public class SubCategoryRepository : IRepository<SubCategory>
     {
         private ApplicationDbContext _context { get; set; }
 
@@ -18,12 +18,12 @@ namespace RetailSystem.Data
             _context = context;
         }
 
-        public IQueryable<SubCategory> GetAll()
+        public async Task<IEnumerable<SubCategory>> GetAsync(Expression<Func<SubCategory, bool>> predicate)
         {
-            return _context.SubCategories;
+            return await _context.SubCategories.Where(predicate).ToListAsync();
         }
 
-        public async Task<IEnumerable<SubCategory>> GetAsync()
+        public async Task<IEnumerable<SubCategory>> GetAllAsync()
         {
             return await _context.SubCategories.ToListAsync();
         }
@@ -34,58 +34,30 @@ namespace RetailSystem.Data
             return entity;
         }
 
-        //public DbEntityEntry<SubCategory> Entry(T entity) {
-        //    return _context.Entry(entity);
-        //}
-
-        public void Add(SubCategory subCategory)
+        public void Add(SubCategory entity)
         {
-            try
-            {
-                _context.SubCategories.Add(subCategory);
-                
-                
-            }
-            catch (DataException)
-            {
-                throw new DataException("An unexpected error occured. Could not be added.");
-            }
+            _context.SubCategories.Add(entity);
         }
 
-        public void Update(SubCategory subCategory)
+        public void Update(SubCategory entity)
         {
-            _context.Entry(subCategory).State = EntityState.Modified;
+            _context.Entry(entity).State = EntityState.Modified;
         }
 
-        public async Task<bool> Remove(int id)
+        public void Remove(SubCategory entity)
         {
-            var entity = await _context.SubCategories.FindAsync(id);
-            if (entity == null)
-            {
-                return false;
-            }
-
-            try
-            {
-                _context.SubCategories.Remove(entity);
-                
-                return true;
-            }
-            catch (DataException)
-            {
-                throw new DataException("An unexpected error occured. Could not delete.");
-            }
-        }
-        
-        public void AddRange(IEnumerable<SubCategory> subCategories)
-        {
-            _context.AddRange(subCategories);
-            
+            _context.SubCategories.Remove(entity);
         }
 
-        public Task RemoveRange(IEnumerable<int> ids)
+        public void AddRange(IEnumerable<SubCategory> entities)
         {
-            throw new NotImplementedException();
+            _context.SubCategories.AddRange(entities);
+
+        }
+
+        public void RemoveRange(IEnumerable<SubCategory> entities)
+        {
+            _context.SubCategories.RemoveRange(entities);
         }
 
         public Task<bool> Exists(int id)

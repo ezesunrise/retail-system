@@ -485,7 +485,7 @@ namespace RetailSystem.Migrations
 
                     b.Property<string>("OrderNumber");
 
-                    b.Property<int?>("PurchaseId");
+                    b.Property<int?>("PurchaseOrderId");
 
                     b.Property<int>("Status");
 
@@ -499,9 +499,9 @@ namespace RetailSystem.Migrations
 
                     b.HasIndex("LocationId");
 
-                    b.HasIndex("PurchaseId")
+                    b.HasIndex("PurchaseOrderId")
                         .IsUnique()
-                        .HasFilter("[PurchaseId] IS NOT NULL");
+                        .HasFilter("[PurchaseOrderId] IS NOT NULL");
 
                     b.HasIndex("UpdaterId");
 
@@ -581,13 +581,13 @@ namespace RetailSystem.Migrations
                     b.Property<string>("Note")
                         .HasMaxLength(512);
 
-                    b.Property<int>("PurchaseId");
+                    b.Property<int>("PurchaseOrderId");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ItemId");
 
-                    b.HasIndex("PurchaseId");
+                    b.HasIndex("PurchaseOrderId");
 
                     b.ToTable("PurchaseItems");
                 });
@@ -1003,7 +1003,7 @@ namespace RetailSystem.Migrations
 
                     b.HasOne("RetailSystem.Models.Purchase", "Purchase")
                         .WithOne("Order")
-                        .HasForeignKey("RetailSystem.Models.Order", "PurchaseId");
+                        .HasForeignKey("RetailSystem.Models.Order", "PurchaseOrderId");
 
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "UpdatedBy")
                         .WithMany()
@@ -1048,7 +1048,7 @@ namespace RetailSystem.Migrations
 
                     b.HasOne("RetailSystem.Models.Purchase", "Purchase")
                         .WithMany("PurchaseItems")
-                        .HasForeignKey("PurchaseId")
+                        .HasForeignKey("PurchaseOrderId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 

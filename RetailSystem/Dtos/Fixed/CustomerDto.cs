@@ -2,7 +2,7 @@
 
 namespace RetailSystem.Dtos
 {
-    public class CustomerDto
+    public class CustomerDto : EntityDto
     {
         //[Required]
         //public string CustomerNumber { get; set; }

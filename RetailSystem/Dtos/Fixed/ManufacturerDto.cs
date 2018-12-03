@@ -1,9 +1,10 @@
 ﻿
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace RetailSystem.Dtos
 {
-    public class ManufacturerDto
+    public class ManufacturerDto : EntityDto
     {
         [Required]
         [StringLength(30)]

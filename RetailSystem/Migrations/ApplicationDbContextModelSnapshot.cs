@@ -203,6 +203,8 @@ namespace RetailSystem.Migrations
                         .IsRequired()
                         .HasMaxLength(64);
 
+                    b.Property<int>("Status");
+
                     b.HasKey("Id");
 
                     b.ToTable("Businesses");
@@ -226,6 +228,9 @@ namespace RetailSystem.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("BusinessId");
+
+                    b.HasIndex("Name")
+                        .HasName("Category_Name");
 
                     b.ToTable("Categories");
                 });
@@ -270,8 +275,8 @@ namespace RetailSystem.Migrations
 
                     b.Property<string>("CreatorId");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(512);
+                    b.Property<string>("InvoiceNumber")
+                        .IsRequired();
 
                     b.Property<int?>("LocationId");
 
@@ -281,9 +286,6 @@ namespace RetailSystem.Migrations
                     b.Property<string>("Receiver")
                         .HasMaxLength(64);
 
-                    b.Property<string>("ReferenceNumber")
-                        .IsRequired();
-
                     b.Property<DateTime?>("UpdateTime");
 
                     b.Property<string>("UpdaterId");
@@ -291,6 +293,9 @@ namespace RetailSystem.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CreatorId");
+
+                    b.HasIndex("InvoiceNumber")
+                        .HasName("Invoice_Number");
 
                     b.HasIndex("LocationId");
 
@@ -301,19 +306,14 @@ namespace RetailSystem.Migrations
 
             modelBuilder.Entity("RetailSystem.Models.InvoiceItem", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
                     b.Property<int>("InvoiceId");
 
                     b.Property<int>("ItemId");
 
                     b.Property<int>("Quantity");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex("InvoiceId");
+                    b.HasKey("InvoiceId", "ItemId")
+                        .HasName("InvoiceItem_Id");
 
                     b.HasIndex("ItemId");
 
@@ -349,14 +349,14 @@ namespace RetailSystem.Migrations
 
                     b.Property<int?>("SupplierId");
 
-                    b.Property<byte?>("Tax");
+                    b.Property<byte>("Tax");
 
                     b.Property<decimal>("UnitCost")
                         .HasColumnType("decimal(8,2)");
 
                     b.Property<int>("UnitId");
 
-                    b.Property<decimal?>("UnitPrice")
+                    b.Property<decimal>("UnitPrice")
                         .HasColumnType("decimal(8,2)");
 
                     b.HasKey("Id");
@@ -365,6 +365,9 @@ namespace RetailSystem.Migrations
                         .HasName("Item_Code");
 
                     b.HasIndex("CategoryId");
+
+                    b.HasIndex("Description")
+                        .HasName("Item_Description");
 
                     b.HasIndex("ManufacturerId");
 
@@ -389,9 +392,14 @@ namespace RetailSystem.Migrations
 
                     b.Property<int>("BusinessId");
 
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(5);
+
                     b.Property<string>("ContactPerson");
 
-                    b.Property<string>("Name");
+                    b.Property<string>("Name")
+                        .IsRequired();
 
                     b.Property<string>("PhoneNumber");
 
@@ -406,37 +414,44 @@ namespace RetailSystem.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasAlternateKey("Code")
+                        .HasName("Location_Code");
+
                     b.HasIndex("BusinessId");
+
+                    b.HasIndex("Name")
+                        .HasName("Location_Name");
 
                     b.ToTable("Locations");
                 });
 
             modelBuilder.Entity("RetailSystem.Models.LocationItem", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<int>("Condition");
+                    b.Property<int>("LocationId");
 
                     b.Property<int>("ItemId");
 
-                    b.Property<int>("LocationId");
+                    b.Property<byte?>("DiscountQuantity");
 
-                    b.Property<long>("LowQuantity");
+                    b.Property<int>("FaultQuantity");
 
-                    b.Property<long>("OptimumQuantity");
+                    b.Property<int>("LowQuantity");
 
-                    b.Property<long>("Quantity");
+                    b.Property<int>("OptimumQuantity");
 
-                    b.Property<decimal?>("UnitPrice")
+                    b.Property<byte>("PercentDiscount");
+
+                    b.Property<int>("Quantity");
+
+                    b.Property<int>("Status");
+
+                    b.Property<decimal>("UnitPrice")
                         .HasColumnType("decimal(8,2)");
 
-                    b.HasKey("Id");
+                    b.HasKey("LocationId", "ItemId")
+                        .HasName("LocationItem_Id");
 
                     b.HasIndex("ItemId");
-
-                    b.HasIndex("LocationId");
 
                     b.ToTable("LocationItems");
                 });
@@ -457,10 +472,13 @@ namespace RetailSystem.Migrations
 
                     b.HasIndex("BusinessId");
 
+                    b.HasIndex("Name")
+                        .HasName("Manufacturer_Name");
+
                     b.ToTable("Manufacturers");
                 });
 
-            modelBuilder.Entity("RetailSystem.Models.Order", b =>
+            modelBuilder.Entity("RetailSystem.Models.PurchaseOrder", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -483,75 +501,9 @@ namespace RetailSystem.Migrations
 
                     b.Property<string>("OrderNumber");
 
-                    b.Property<int?>("PurchaseId");
+                    b.Property<int>("OrderStatus");
 
-                    b.Property<int>("Status");
-
-                    b.Property<DateTime?>("UpdateTime");
-
-                    b.Property<string>("UpdaterId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatorId");
-
-                    b.HasIndex("LocationId");
-
-                    b.HasIndex("PurchaseId")
-                        .IsUnique()
-                        .HasFilter("[PurchaseId] IS NOT NULL");
-
-                    b.HasIndex("UpdaterId");
-
-                    b.ToTable("Orders");
-                });
-
-            modelBuilder.Entity("RetailSystem.Models.OrderItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<int>("ItemId");
-
-                    b.Property<string>("Note")
-                        .HasMaxLength(512);
-
-                    b.Property<int>("OrderId");
-
-                    b.Property<int>("Quantity");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ItemId");
-
-                    b.HasIndex("OrderId");
-
-                    b.ToTable("OrderItems");
-                });
-
-            modelBuilder.Entity("RetailSystem.Models.Purchase", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<DateTime>("CreationTime");
-
-                    b.Property<string>("CreatorId");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(512);
-
-                    b.Property<int>("LocationId");
-
-                    b.Property<string>("Note")
-                        .HasMaxLength(1024);
-
-                    b.Property<int?>("OrderId");
-
-                    b.Property<string>("ReferenceNumber")
-                        .IsRequired();
+                    b.Property<int>("PaymentStatus");
 
                     b.Property<DateTime?>("UpdateTime");
 
@@ -562,30 +514,37 @@ namespace RetailSystem.Migrations
                     b.HasIndex("CreatorId");
 
                     b.HasIndex("LocationId");
+
+                    b.HasIndex("OrderNumber")
+                        .HasName("PurchaseOrder_Number");
 
                     b.HasIndex("UpdaterId");
 
                     b.ToTable("Purchases");
                 });
 
-            modelBuilder.Entity("RetailSystem.Models.PurchaseItem", b =>
+            modelBuilder.Entity("RetailSystem.Models.PurchaseOrderItem", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                    b.Property<int>("PurchaseOrderId");
 
                     b.Property<int>("ItemId");
+
+                    b.Property<int>("FaultQuantity");
 
                     b.Property<string>("Note")
                         .HasMaxLength(512);
 
-                    b.Property<int>("PurchaseId");
+                    b.Property<int>("Quantity");
 
-                    b.HasKey("Id");
+                    b.Property<int>("QuantityDelivered");
+
+                    b.Property<decimal>("UnitCost")
+                        .HasColumnType("decimal(8,2)");
+
+                    b.HasKey("PurchaseOrderId", "ItemId")
+                        .HasName("PurchaseOrderItem_Id");
 
                     b.HasIndex("ItemId");
-
-                    b.HasIndex("PurchaseId");
 
                     b.ToTable("PurchaseItems");
                 });
@@ -596,19 +555,23 @@ namespace RetailSystem.Migrations
                         .ValueGeneratedOnAdd()
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<decimal>("CashPaid");
+                    b.Property<decimal>("CashPaid")
+                        .HasColumnType("decimal(8,2)");
 
                     b.Property<string>("Note")
                         .HasMaxLength(1024);
 
                     b.Property<string>("Operator");
 
-                    b.Property<string>("ReferenceNumber")
+                    b.Property<string>("ReceiptNumber")
                         .IsRequired();
 
                     b.Property<int>("SaleId");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ReceiptNumber")
+                        .HasName("Receipt_Number");
 
                     b.HasIndex("SaleId");
 
@@ -635,19 +598,14 @@ namespace RetailSystem.Migrations
 
             modelBuilder.Entity("RetailSystem.Models.ReportItem", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                    b.Property<int>("ReportGroupId");
 
                     b.Property<int>("ItemId");
 
-                    b.Property<int>("ReportGroupId");
-
-                    b.HasKey("Id");
+                    b.HasKey("ReportGroupId", "ItemId")
+                        .HasName("ReportItem_Id");
 
                     b.HasIndex("ItemId");
-
-                    b.HasIndex("ReportGroupId");
 
                     b.ToTable("ReportItems");
                 });
@@ -662,19 +620,13 @@ namespace RetailSystem.Migrations
 
                     b.Property<string>("CreatorId");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(1024);
-
                     b.Property<int>("LocationId");
 
                     b.Property<string>("Note")
-                        .HasMaxLength(1024);
+                        .HasMaxLength(512);
 
                     b.Property<string>("ReferenceNumber")
                         .IsRequired();
-
-                    b.Property<decimal>("Total")
-                        .HasColumnType("decimal(8,2)");
 
                     b.Property<DateTime?>("UpdateTime");
 
@@ -686,6 +638,9 @@ namespace RetailSystem.Migrations
 
                     b.HasIndex("LocationId");
 
+                    b.HasIndex("ReferenceNumber")
+                        .HasName("Sale_ReferenceNumber");
+
                     b.HasIndex("UpdaterId");
 
                     b.ToTable("Sales");
@@ -693,30 +648,19 @@ namespace RetailSystem.Migrations
 
             modelBuilder.Entity("RetailSystem.Models.SaleItem", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(512);
+                    b.Property<int>("SaleId");
 
                     b.Property<int>("ItemId");
 
-                    b.Property<string>("Note")
-                        .HasMaxLength(512);
-
-                    b.Property<long>("Quantity");
-
-                    b.Property<int>("SaleId");
+                    b.Property<int>("Quantity");
 
                     b.Property<decimal>("UnitPrice")
                         .HasColumnType("decimal(8,2)");
 
-                    b.HasKey("Id");
+                    b.HasKey("SaleId", "ItemId")
+                        .HasName("SaleItem_Id");
 
                     b.HasIndex("ItemId");
-
-                    b.HasIndex("SaleId");
 
                     b.ToTable("SaleItems");
                 });
@@ -766,6 +710,8 @@ namespace RetailSystem.Migrations
 
                     b.Property<string>("PhoneNumber");
 
+                    b.Property<int>("Status");
+
                     b.Property<string>("SupplierCode")
                         .IsRequired();
 
@@ -773,7 +719,78 @@ namespace RetailSystem.Migrations
 
                     b.HasIndex("BusinessId");
 
+                    b.HasIndex("Name")
+                        .HasName("Supplier_Name");
+
+                    b.HasIndex("SupplierCode")
+                        .HasName("Supplier_Code");
+
                     b.ToTable("Suppliers");
+                });
+
+            modelBuilder.Entity("RetailSystem.Models.Supply", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<DateTime>("CreationTime");
+
+                    b.Property<string>("CreatorId");
+
+                    b.Property<DateTime?>("ExpectedDeliveryDate");
+
+                    b.Property<int>("LocationId");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(1024);
+
+                    b.Property<int>("OrderStatus");
+
+                    b.Property<int>("PaymentStatus");
+
+                    b.Property<string>("ReferenceNumber");
+
+                    b.Property<DateTime?>("UpdateTime");
+
+                    b.Property<string>("UpdaterId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatorId");
+
+                    b.HasIndex("LocationId");
+
+                    b.HasIndex("ReferenceNumber")
+                        .HasName("Supply_ReferenceNumber");
+
+                    b.HasIndex("UpdaterId");
+
+                    b.ToTable("Supplies");
+                });
+
+            modelBuilder.Entity("RetailSystem.Models.SupplyItem", b =>
+                {
+                    b.Property<int>("SupplyId");
+
+                    b.Property<int>("ItemId");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(512);
+
+                    b.Property<int>("Quantity");
+
+                    b.Property<int>("QuantityDelivered");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(8,2)");
+
+                    b.HasKey("SupplyId", "ItemId")
+                        .HasName("SupplyItem_Id");
+
+                    b.HasIndex("ItemId");
+
+                    b.ToTable("SupplyItems");
                 });
 
             modelBuilder.Entity("RetailSystem.Models.Transfer", b =>
@@ -786,20 +803,17 @@ namespace RetailSystem.Migrations
 
                     b.Property<string>("CreatorId");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(512);
-
                     b.Property<int>("DestinationLocationId");
 
                     b.Property<string>("Note")
-                        .HasMaxLength(1024);
-
-                    b.Property<string>("ReferenceNumber")
-                        .IsRequired();
+                        .HasMaxLength(512);
 
                     b.Property<int>("SourceLocationId");
 
                     b.Property<int>("Status");
+
+                    b.Property<string>("TransferNumber")
+                        .IsRequired();
 
                     b.Property<DateTime?>("UpdateTime");
 
@@ -813,6 +827,9 @@ namespace RetailSystem.Migrations
 
                     b.HasIndex("SourceLocationId");
 
+                    b.HasIndex("TransferNumber")
+                        .HasName("Transfer_Number");
+
                     b.HasIndex("UpdaterId");
 
                     b.ToTable("Transfers");
@@ -820,27 +837,19 @@ namespace RetailSystem.Migrations
 
             modelBuilder.Entity("RetailSystem.Models.TransferItem", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(512);
+                    b.Property<int>("TransferId");
 
                     b.Property<int>("ItemId");
 
                     b.Property<string>("Note")
-                        .HasMaxLength(1024);
+                        .HasMaxLength(256);
 
                     b.Property<int>("Quantity");
 
-                    b.Property<int>("TransferId");
-
-                    b.HasKey("Id");
+                    b.HasKey("TransferId", "ItemId")
+                        .HasName("TransferItem_Id");
 
                     b.HasIndex("ItemId");
-
-                    b.HasIndex("TransferId");
 
                     b.ToTable("TransferItems");
                 });
@@ -860,6 +869,9 @@ namespace RetailSystem.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("BusinessId");
+
+                    b.HasIndex("Name")
+                        .HasName("Unit_Name");
 
                     b.ToTable("Units");
                 });
@@ -1013,47 +1025,14 @@ namespace RetailSystem.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
-            modelBuilder.Entity("RetailSystem.Models.Order", b =>
+            modelBuilder.Entity("RetailSystem.Models.PurchaseOrder", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "CreatedBy")
                         .WithMany()
                         .HasForeignKey("CreatorId");
 
                     b.HasOne("RetailSystem.Models.Location", "Location")
-                        .WithMany("Orders")
-                        .HasForeignKey("LocationId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("RetailSystem.Models.Purchase", "Purchase")
-                        .WithOne("Order")
-                        .HasForeignKey("RetailSystem.Models.Order", "PurchaseId");
-
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "UpdatedBy")
-                        .WithMany()
-                        .HasForeignKey("UpdaterId");
-                });
-
-            modelBuilder.Entity("RetailSystem.Models.OrderItem", b =>
-                {
-                    b.HasOne("RetailSystem.Models.Item", "Item")
-                        .WithMany("OrderItems")
-                        .HasForeignKey("ItemId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("RetailSystem.Models.Order", "Order")
-                        .WithMany("OrderItems")
-                        .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
-
-            modelBuilder.Entity("RetailSystem.Models.Purchase", b =>
-                {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "CreatedBy")
-                        .WithMany()
-                        .HasForeignKey("CreatorId");
-
-                    b.HasOne("RetailSystem.Models.Location", "Location")
-                        .WithMany("Purchases")
+                        .WithMany("PurchaseOrders")
                         .HasForeignKey("LocationId")
                         .OnDelete(DeleteBehavior.Cascade);
 
@@ -1062,16 +1041,16 @@ namespace RetailSystem.Migrations
                         .HasForeignKey("UpdaterId");
                 });
 
-            modelBuilder.Entity("RetailSystem.Models.PurchaseItem", b =>
+            modelBuilder.Entity("RetailSystem.Models.PurchaseOrderItem", b =>
                 {
                     b.HasOne("RetailSystem.Models.Item", "Item")
-                        .WithMany("PurchaseItems")
+                        .WithMany("PurchaseOrderItems")
                         .HasForeignKey("ItemId")
                         .OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("RetailSystem.Models.Purchase", "Purchase")
-                        .WithMany("PurchaseItems")
-                        .HasForeignKey("PurchaseId")
+                    b.HasOne("RetailSystem.Models.PurchaseOrder", "PurchaseOrder")
+                        .WithMany("PurchaseOrderItems")
+                        .HasForeignKey("PurchaseOrderId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
@@ -1138,6 +1117,35 @@ namespace RetailSystem.Migrations
                     b.HasOne("RetailSystem.Models.Business", "Business")
                         .WithMany("Suppliers")
                         .HasForeignKey("BusinessId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("RetailSystem.Models.Supply", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatorId");
+
+                    b.HasOne("RetailSystem.Models.Location", "Location")
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "UpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("UpdaterId");
+                });
+
+            modelBuilder.Entity("RetailSystem.Models.SupplyItem", b =>
+                {
+                    b.HasOne("RetailSystem.Models.Item", "Item")
+                        .WithMany()
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("RetailSystem.Models.Supply", "Supply")
+                        .WithMany("SupplyItems")
+                        .HasForeignKey("SupplyId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 

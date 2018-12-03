@@ -22,12 +22,12 @@ namespace RetailSystem.Data
         public DbSet<Location> Locations { get; set; }
         public DbSet<LocationItem> LocationItems { get; set; }
         public DbSet<Supplier> Suppliers { get; set; }
-        public DbSet<Order> Orders { get; set; }
-        public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<Sale> Sales { get; set; }
         public DbSet<SaleItem> SaleItems { get; set; }
-        public DbSet<Purchase> Purchases { get; set; }
-        public DbSet<PurchaseItem> PurchaseItems { get; set; }
+        public DbSet<PurchaseOrder> Purchases { get; set; }
+        public DbSet<Supply> Supplies { get; set; }
+        public DbSet<SupplyItem> SupplyItems { get; set; }
+        public DbSet<PurchaseOrderItem> PurchaseItems { get; set; }
         public DbSet<Transfer> Transfers { get; set; }
         public DbSet<TransferItem> TransferItems { get; set; }
         public DbSet<ReportGroup> ReportGroups { get; set; }
@@ -39,9 +39,14 @@ namespace RetailSystem.Data
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
+            //Category
+            builder.Entity<Category>()
+                .HasIndex(s => s.Name).HasName("Category_Name");
             //Item
             builder.Entity<Item>()
                 .HasAlternateKey(i => i.Code).HasName("Item_Code");
+            builder.Entity<Item>()
+                .HasIndex(i => i.Description).HasName("Item_Description");
             builder.Entity<Item>()
                 .Property(i => i.UnitCost)
                 .HasColumnType("decimal(8,2)");
@@ -50,17 +55,29 @@ namespace RetailSystem.Data
                 .HasColumnType("decimal(8,2)");
             //SaleItem
             builder.Entity<SaleItem>()
+                .HasKey(l => new { l.SaleId, l.ItemId })
+                .HasName("SaleItem_Id");
+            builder.Entity<SaleItem>()
                 .Property(s => s.UnitPrice)
                 .HasColumnType("decimal(8,2)");
             //Sale
             builder.Entity<Sale>()
-                .Property(s => s.Total)
-                .HasColumnType("decimal(8,2)");
+                .HasIndex(s => s.ReferenceNumber).HasName("Sale_ReferenceNumber");
+            //Supply
+            builder.Entity<Supply>()
+                .HasIndex(s => s.ReferenceNumber).HasName("Supply_ReferenceNumber");
             //LocationItem
+            builder.Entity<LocationItem>()
+                .HasKey(l => new { l.LocationId, l.ItemId })
+                .HasName("LocationItem_Id");
             builder.Entity<LocationItem>()
                 .Property(i => i.UnitPrice)
                 .HasColumnType("decimal(8,2)");
             //Location
+            builder.Entity<Location>()
+                .HasAlternateKey(l => l.Code).HasName("Location_Code");
+            builder.Entity<Location>()
+                .HasIndex(l => l.Name).HasName("Location_Name");
             builder.Entity<Location>()
                 .Property(l => l.Target)
                 .HasColumnType("decimal(8,2)");
@@ -72,11 +89,59 @@ namespace RetailSystem.Data
                 .HasMany(l => l.IncomingTransfers)
                 .WithOne(t => t.DestinationLocation)
                 .OnDelete(DeleteBehavior.Restrict);
-            //Purchase
-            builder.Entity<Purchase>()
-                .HasOne(p => p.Order)
-                .WithOne(o => o.Purchase)
-                .HasForeignKey<Order>();
+            //PurchaseOrderItem
+            builder.Entity<PurchaseOrderItem>()
+                .HasKey(l => new { l.PurchaseOrderId, l.ItemId })
+                .HasName("PurchaseOrderItem_Id");
+            builder.Entity<PurchaseOrderItem>()
+                .Property(p => p.UnitCost)
+                .HasColumnType("decimal(8,2)");
+            //TransferItem
+            builder.Entity<TransferItem>()
+                .HasKey(l => new { l.TransferId, l.ItemId })
+                .HasName("TransferItem_Id");
+            //InvoiceItem
+            builder.Entity<InvoiceItem>()
+                .HasKey(l => new { l.InvoiceId, l.ItemId })
+                .HasName("InvoiceItem_Id");
+            //SupplyItem
+            builder.Entity<SupplyItem>()
+                .HasKey(s => new { s.SupplyId, s.ItemId })
+                .HasName("SupplyItem_Id");
+            builder.Entity<SupplyItem>()
+                .Property(s => s.UnitPrice)
+                .HasColumnType("decimal(8,2)");
+            //ReportItem
+            builder.Entity<ReportItem>()
+                .HasKey(l => new { l.ReportGroupId, l.ItemId })
+                .HasName("ReportItem_Id");
+            //Supplier
+            builder.Entity<Supplier>()
+                .HasIndex(s => s.SupplierCode).HasName("Supplier_Code");
+            builder.Entity<Supplier>()
+                .HasIndex(s => s.Name).HasName("Supplier_Name");
+            //Manufacturer
+            builder.Entity<Manufacturer>()
+                .HasIndex(s => s.Name).HasName("Manufacturer_Name");
+            //PurchaseOrder
+            builder.Entity<PurchaseOrder>()
+                .HasIndex(p => p.OrderNumber).HasName("PurchaseOrder_Number");
+            //Transfer
+            builder.Entity<Transfer>()
+                .HasIndex(t => t.TransferNumber).HasName("Transfer_Number");
+            //Invoice
+            builder.Entity<Invoice>()
+                .HasIndex(i => i.InvoiceNumber).HasName("Invoice_Number");
+            //Receipt
+            builder.Entity<Receipt>()
+                .HasIndex(r => r.ReceiptNumber).HasName("Receipt_Number");
+            builder.Entity<Receipt>()
+                .Property(r => r.CashPaid)
+                .HasColumnType("decimal(8,2)");
+            //Unit
+            builder.Entity<Unit>()
+                .HasIndex(u => u.Name)
+                .HasName("Unit_Name");
 
             base.OnModelCreating(builder);
         }

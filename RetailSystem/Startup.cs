@@ -59,11 +59,12 @@ namespace RetailSystem
             services.AddScoped<IRepository<ReportGroup>, Repository<ReportGroup>>();
             services.AddScoped<IRepository<Unit>, Repository<Unit>>();
             services.AddScoped<IRepository<SubCategory>, Repository<SubCategory>>();
-            services.AddScoped<IRepository<Order>, Repository<Order>>();
-            services.AddScoped<IRepository<Sale>, Repository<Sale>>();
-            services.AddScoped<IRepository<Purchase>, Repository<Purchase>>();
-            services.AddScoped<IRepository<Transfer>, Repository<Transfer>>();
-            services.AddScoped<IRepository<Invoice>, Repository<Invoice>>();
+            //
+            services.AddScoped<ICompositeRepository<LocationItem>, LocationItemRepository>();
+            services.AddScoped<IRepository<Sale>, SaleRepository>();
+            services.AddScoped<IRepository<PurchaseOrder>, PurchaseOrderRepository>();
+            services.AddScoped<IRepository<Transfer>, TransferRepository>();
+            services.AddScoped<IRepository<Invoice>, InvoiceRepository>();
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
@@ -90,20 +91,20 @@ namespace RetailSystem
             services.AddDefaultIdentity<IdentityUser>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
-            //services.AddSwaggerDocument(config =>
-            //{
-            //    config.PostProcess = document =>
-            //    {
-            //        document.Info.Title = "Retail System Api";
-            //        document.Info.Description = "An Api for daily retail activities";
-            //        document.Info.Contact = new NSwag.SwaggerContact
-            //        {
-            //            Name = "Sunrise Ezekikwu",
-            //            Email = "ezesunrise@yahoo.com",
-            //            Url = "https://linkedin.com/in/ezesunrise"
-            //        };
-            //    };
-            //});
+            services.AddSwaggerDocument(config =>
+            {
+                config.PostProcess = document =>
+                {
+                    document.Info.Title = "Retail System Api";
+                    document.Info.Description = "An Api for daily retail activities";
+                    document.Info.Contact = new NSwag.SwaggerContact
+                    {
+                        Name = "Sunrise Ezekikwu",
+                        Email = "ezesunrise@yahoo.com",
+                        Url = "https://linkedin.com/in/ezesunrise"
+                    };
+                };
+            });
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
@@ -128,8 +129,8 @@ namespace RetailSystem
 
             app.UseAuthentication();
 
-            //app.UseSwagger();
-            //app.UseSwaggerUi3();
+            app.UseSwagger();
+            app.UseSwaggerUi3();
 
 
             app.UseMvc(routes =>
@@ -137,14 +138,6 @@ namespace RetailSystem
                 routes.MapRoute(
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
-
-                routes.MapRoute(
-                    name: "api_default",
-                    template: "api/{controller}/{action}/{id?}");
-
-                //routes.MapSpaFallbackRoute(
-                //    name: "spa-fallback",
-                //    defaults: new { controller = "Home", action = "Index" });
             });
         }
     }

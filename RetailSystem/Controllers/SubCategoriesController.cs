@@ -7,110 +7,128 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RetailSystem.Data;
+using RetailSystem.Dtos;
 using RetailSystem.Models;
 
 namespace RetailSystem.Controllers
 {
     [Produces("application/json")]
-    [Route("api/SubCategories")]
+    [Route("api/[controller]/[action]")]
     public class SubCategoriesController : Controller
     {
         private readonly IRepository<SubCategory> _repository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public SubCategoriesController(IRepository<SubCategory> repository)
+        public SubCategoriesController(IRepository<SubCategory> repository, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _repository = repository;
+            _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
-        // GET: api/SubCategories
         [HttpGet]
-        public async Task<IEnumerable<SubCategory>> GetSubCategories()
+        public async Task<IEnumerable<SubCategoryListDto>> GetAllSubCategories()
         {
-            return await _repository.GetAsync();
+            var entities = await _repository.GetAllAsync();
+            return _mapper.Map<IEnumerable<SubCategoryListDto>>(entities);
         }
 
-        // GET: api/SubCategories/5
+        [HttpGet]
+        public async Task<IEnumerable<SubCategoryListDto>> GetSubCategories(int categoryId)
+        {
+            var entities = await _repository.GetAsync(s => s.CategoryId == categoryId);
+            return _mapper.Map<IEnumerable<SubCategoryListDto>>(entities);
+        }
+
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetSubCategory([FromRoute] int id)
+        public async Task<IActionResult> GetSubCategoryById([FromRoute] int id)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var subCategory = await _repository.GetByIdAsync(id);
+            var entity = await _repository.GetByIdAsync(id);
 
-            if (subCategory == null)
+            if (entity == null)
             {
                 return NotFound();
             }
 
-            return Ok(subCategory);
+            var entityDto = _mapper.Map<SubCategoryDto>(entity);
+            return Ok(entityDto);
         }
 
-        // PUT: api/SubCategories/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateSubCategory([FromRoute] int id, [FromBody] SubCategory subCategory)
+        [HttpPost]
+        public async Task<IActionResult> CreateSubCategory([FromBody] SubCategoryDto entityDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            if (id != subCategory.Id)
+            var entity = _mapper.Map<SubCategory>(entityDto);
+            try
+            {
+                _repository.Add(entity);
+                await _unitOfWork.SaveAsync();
+                return CreatedAtAction("GetSubCategoryById", new { id = entity.Id }, entity.Id);
+            }
+            catch (Exception e)
+            {
+                throw new Exception("An unexpected error occured. Could not be added.", e);
+            }
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateSubCategory([FromRoute] int id, [FromBody] SubCategoryDto entityDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (id != entityDto.Id)
             {
                 return BadRequest();
             }
 
-            _repository.Update(subCategory);
+            var entity = await _repository.GetByIdAsync(entityDto.Id);
+            if (entity == null)
+            {
+                return NotFound("Sub-category does not exist");
+            }
+
+            _mapper.Map(entityDto, entity);
 
             try
             {
+                _repository.Update(entity);
                 await _unitOfWork.SaveAsync();
             }
 
             catch (Exception)
             {
-                if (!await _repository.Exists(subCategory.Id))
-                {
-                    return BadRequest("Sub-category does not exist");
-                }
-
                 throw new Exception("An unexpected error occured. Could not update.");
             }
 
-            return NotFound();
+            return NoContent();
         }
 
-        // POST: api/SubCategories
-        [HttpPost]
-        public async Task<IActionResult> CreateSubCategory([FromBody] SubCategory subCategory)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            _repository.Add(subCategory);
-            await _unitOfWork.SaveAsync();
-
-            return CreatedAtAction("GetSubCategory", new { id = subCategory.Id }, subCategory);
-        }
-
-        // DELETE: api/SubCategories/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteSubCategory([FromRoute] int id)
         {
-            var removed = await _repository.Remove(id);
+            var entity = await _repository.GetByIdAsync(id);
+            if (entity == null)
+            {
+                return BadRequest("The SubCategory to be deleted does not exist");
+            }
+
+            _repository.Remove(entity);
 
             try
             {
-                if (!removed)
-                {
-                    return NotFound("The Sub-category to be deleted was not found");
-                }
                 await _unitOfWork.SaveAsync();
                 return Ok();
             }

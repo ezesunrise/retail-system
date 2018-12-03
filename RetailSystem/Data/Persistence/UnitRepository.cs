@@ -4,12 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace RetailSystem.Data
 {
-    public class UnitRepository: IRepository<Unit>
+    public class UnitRepository : IRepository<Unit>
     {
         private ApplicationDbContext _context { get; set; }
 
@@ -18,12 +18,12 @@ namespace RetailSystem.Data
             _context = context;
         }
 
-        public IQueryable<Unit> GetAll()
+        public async Task<IEnumerable<Unit>> GetAsync(Expression<Func<Unit, bool>> predicate)
         {
-            return _context.Units;
+            return await _context.Units.Where(predicate).ToListAsync();
         }
 
-        public async Task<IEnumerable<Unit>> GetAsync()
+        public async Task<IEnumerable<Unit>> GetAllAsync()
         {
             return await _context.Units.ToListAsync();
         }
@@ -34,54 +34,30 @@ namespace RetailSystem.Data
             return entity;
         }
 
-        //public DbEntityEntry<Unit> Entry(T entity) {
-        //    return _context.Entry(entity);
-        //}
-
-        public void Add(Unit unit)
+        public void Add(Unit entity)
         {
-            try
-            {
-                _context.Units.Add(unit);
-            }
-            catch (DataException)
-            {
-                throw new DataException("An unexpected error occured. Could not be added.");
-            }
+            _context.Units.Add(entity);
         }
 
-        public void Update(Unit unit)
+        public void Update(Unit entity)
         {
-            _context.Entry(unit).State = EntityState.Modified;
-        }
-        public async Task<bool> Remove(int id)
-        {
-            var entity = await _context.Units.FindAsync(id);
-            if (entity == null)
-            {
-                return false;
-            }
-
-            try
-            {
-                _context.Units.Remove(entity);
-                
-                return true;
-            }
-            catch (DataException)
-            {
-                throw new DataException("An unexpected error occured. Could not delete.");
-            }
+            _context.Entry(entity).State = EntityState.Modified;
         }
 
-        public void AddRange(IEnumerable<Unit> units)
+        public void Remove(Unit entity)
         {
-            _context.AddRange(units);
+            _context.Units.Remove(entity);
         }
 
-        public Task RemoveRange(IEnumerable<int> ids)
+        public void AddRange(IEnumerable<Unit> entities)
         {
-            throw new NotImplementedException();
+            _context.Units.AddRange(entities);
+
+        }
+
+        public void RemoveRange(IEnumerable<Unit> entities)
+        {
+            _context.Units.RemoveRange(entities);
         }
 
         public Task<bool> Exists(int id)

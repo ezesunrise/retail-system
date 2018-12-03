@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace RetailSystem.Dtos
 {
-    public class ItemListDto
+    public class ItemListDto : EntityDto
     {
         [Required]
         [StringLength(6, MinimumLength = 6, ErrorMessage ="Code must be {0} long")]
@@ -17,7 +17,7 @@ namespace RetailSystem.Dtos
         public string Description { get; set; }
         
         public decimal UnitCost { get; set; }
-        public decimal? UnitPrice { get; set; }
+        public decimal UnitPrice { get; set; }
 
         public byte? Tax { get; set; }
         
@@ -30,12 +30,16 @@ namespace RetailSystem.Dtos
         public string Note { get; set; }
 
         public int? CategoryId { get; set; }
+        public string CategoryName { get; set; }
 
         public int? SubCategoryId { get; set; }
+        public string SubCategoryName { get; set; }
 
         public int? ManufacturerId { get; set; }
+        public string ManufacturerName { get; set; }
 
         public int? SupplierId { get; set; }
-        
+        public string SupplierName { get; set; }
+
     }
 }

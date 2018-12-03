@@ -7,110 +7,128 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RetailSystem.Data;
+using RetailSystem.Dtos;
 using RetailSystem.Models;
 
 namespace RetailSystem.Controllers
 {
     [Produces("application/json")]
-    [Route("api/Suppliers")]
+    [Route("api/[controller]/[action]")]
     public class SuppliersController : Controller
     {
         private readonly IRepository<Supplier> _repository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public SuppliersController(IRepository<Supplier> repository)
+        public SuppliersController(IRepository<Supplier> repository, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _repository = repository;
+            _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
-        // GET: api/Suppliers
         [HttpGet]
-        public async Task<IEnumerable<Supplier>> GetSuppliers()
+        public async Task<IEnumerable<SupplierListDto>> GetAllSuppliers()
         {
-            return await _repository.GetAsync();
+            var entities = await _repository.GetAllAsync();
+            return _mapper.Map<IEnumerable<SupplierListDto>>(entities);
         }
 
-        // GET: api/Suppliers/5
+        [HttpGet]
+        public async Task<IEnumerable<SupplierListDto>> GetSuppliers(int businessId)
+        {
+            var entities = await _repository.GetAsync(s => s.BusinessId == businessId);
+            return _mapper.Map<IEnumerable<SupplierListDto>>(entities);
+        }
+
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetSupplier([FromRoute] int id)
+        public async Task<IActionResult> GetSupplierById([FromRoute] int id)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var supplier = await _repository.GetByIdAsync(id);
+            var entity = await _repository.GetByIdAsync(id);
 
-            if (supplier == null)
+            if (entity == null)
             {
                 return NotFound();
             }
 
-            return Ok(supplier);
+            var entityDto = _mapper.Map<SupplierDto>(entity);
+            return Ok(entityDto);
         }
 
-        // PUT: api/Suppliers/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateSupplier([FromRoute] int id, [FromBody] Supplier supplier)
+        [HttpPost]
+        public async Task<IActionResult> CreateSupplier([FromBody] SupplierDto entityDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            if (id != supplier.Id)
+            var entity = _mapper.Map<Supplier>(entityDto);
+            try
+            {
+                _repository.Add(entity);
+                await _unitOfWork.SaveAsync();
+                return CreatedAtAction("GetSupplierById", new { id = entity.Id }, entity.Id);
+            }
+            catch (Exception e)
+            {
+                throw new Exception("An unexpected error occured. Could not be added.", e);
+            }
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateSupplier([FromRoute] int id, [FromBody] SupplierDto entityDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (id != entityDto.Id)
             {
                 return BadRequest();
             }
 
-            _repository.Update(supplier);
+            var entity = await _repository.GetByIdAsync(entityDto.Id);
+            if (entity == null)
+            {
+                return NotFound("Supplier does not exist");
+            }
+
+            _mapper.Map(entityDto, entity);
 
             try
             {
+                _repository.Update(entity);
                 await _unitOfWork.SaveAsync();
             }
 
             catch (Exception)
             {
-                if (!await _repository.Exists(supplier.Id))
-                {
-                    return BadRequest("Supplier does not exist");
-                }
-
                 throw new Exception("An unexpected error occured. Could not update.");
             }
 
-            return NotFound();
+            return NoContent();
         }
 
-        // POST: api/Suppliers
-        [HttpPost]
-        public async Task<IActionResult> CreateSupplier([FromBody] Supplier supplier)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            _repository.Add(supplier);
-            await _unitOfWork.SaveAsync();
-
-            return CreatedAtAction("GetSupplier", new { id = supplier.Id }, supplier);
-        }
-
-        // DELETE: api/Suppliers/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteSupplier([FromRoute] int id)
         {
-            var removed = await _repository.Remove(id);
+            var entity = await _repository.GetByIdAsync(id);
+            if (entity == null)
+            {
+                return BadRequest("The Supplier to be deleted does not exist");
+            }
+
+            _repository.Remove(entity);
 
             try
             {
-                if (!removed)
-                {
-                    return NotFound("The Supplier to be deleted was not found");
-                }
                 await _unitOfWork.SaveAsync();
                 return Ok();
             }

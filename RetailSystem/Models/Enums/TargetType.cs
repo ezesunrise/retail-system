@@ -8,7 +8,7 @@ namespace RetailSystem.Models.Enums
     {
         Daily,
         Weekly,
-        Fortnightly,
+        Biweekly,
         Monthly,
         Quarterly,
         Yearly

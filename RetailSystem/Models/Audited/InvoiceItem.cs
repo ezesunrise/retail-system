@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RetailSystem.Models
 {
-    public class InvoiceItem : Entity
+    public class InvoiceItem
     {
         public int ItemId { get; set; }
         public virtual Item Item { get; set; }
@@ -14,8 +14,9 @@ namespace RetailSystem.Models
         public virtual Invoice Invoice { get; set; }
         
         [Required]
+        [Range(0, int.MaxValue)]
         public int Quantity { get; set; }
 
-        public decimal TotalPrice { get => Item.UnitPrice .Value * Quantity; }
+        public decimal TotalPrice { get => Item.UnitPrice * Quantity; }
     }
 }

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace RetailSystem.Dtos
 {
-    public class SubCategoryListDto
+    public class SubCategoryListDto : EntityDto
     {
         [Required]
         [StringLength(30)]
@@ -13,6 +13,7 @@ namespace RetailSystem.Dtos
         public string Description { get; set; }
 
         public int CategoryId { get; set; }
+        public string CategoryName { get; set; }
 
     }
 }
