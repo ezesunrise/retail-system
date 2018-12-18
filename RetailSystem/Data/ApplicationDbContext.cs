@@ -7,13 +7,15 @@ using RetailSystem.Models;
 
 namespace RetailSystem.Data
 {
-    public class ApplicationDbContext : IdentityDbContext
+    public class ApplicationDbContext : DbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
         }
 
+        //public DbSet<AppUser> AppUsers { get; set; }
+        //public DbSet<BackOrder> BackOrders { get; set; }
         public DbSet<Business> Businesses { get; set; }
         public DbSet<Manufacturer> Manufacturers { get; set; }
         public DbSet<Item> Items { get; set; }
@@ -49,17 +51,17 @@ namespace RetailSystem.Data
                 .HasIndex(i => i.Description).HasName("Item_Description");
             builder.Entity<Item>()
                 .Property(i => i.UnitCost)
-                .HasColumnType("decimal(8,2)");
+                .HasColumnType("decimal(10,2)");
             builder.Entity<Item>()
                 .Property(i => i.UnitPrice)
-                .HasColumnType("decimal(8,2)");
+                .HasColumnType("decimal(10,2)");
             //SaleItem
             builder.Entity<SaleItem>()
                 .HasKey(l => new { l.SaleId, l.ItemId })
                 .HasName("SaleItem_Id");
             builder.Entity<SaleItem>()
                 .Property(s => s.UnitPrice)
-                .HasColumnType("decimal(8,2)");
+                .HasColumnType("decimal(10,2)");
             //Sale
             builder.Entity<Sale>()
                 .HasIndex(s => s.ReferenceNumber).HasName("Sale_ReferenceNumber");
@@ -72,7 +74,7 @@ namespace RetailSystem.Data
                 .HasName("LocationItem_Id");
             builder.Entity<LocationItem>()
                 .Property(i => i.UnitPrice)
-                .HasColumnType("decimal(8,2)");
+                .HasColumnType("decimal(10,2)");
             //Location
             builder.Entity<Location>()
                 .HasAlternateKey(l => l.Code).HasName("Location_Code");
@@ -80,7 +82,7 @@ namespace RetailSystem.Data
                 .HasIndex(l => l.Name).HasName("Location_Name");
             builder.Entity<Location>()
                 .Property(l => l.Target)
-                .HasColumnType("decimal(8,2)");
+                .HasColumnType("decimal(12,2)");
             builder.Entity<Location>()
                 .HasMany(l => l.OutgoingTransfers)
                 .WithOne(t => t.SourceLocation)
@@ -95,7 +97,7 @@ namespace RetailSystem.Data
                 .HasName("PurchaseOrderItem_Id");
             builder.Entity<PurchaseOrderItem>()
                 .Property(p => p.UnitCost)
-                .HasColumnType("decimal(8,2)");
+                .HasColumnType("decimal(10,2)");
             //TransferItem
             builder.Entity<TransferItem>()
                 .HasKey(l => new { l.TransferId, l.ItemId })
@@ -110,7 +112,7 @@ namespace RetailSystem.Data
                 .HasName("SupplyItem_Id");
             builder.Entity<SupplyItem>()
                 .Property(s => s.UnitPrice)
-                .HasColumnType("decimal(8,2)");
+                .HasColumnType("decimal(10,2)");
             //ReportItem
             builder.Entity<ReportItem>()
                 .HasKey(l => new { l.ReportGroupId, l.ItemId })
@@ -137,7 +139,7 @@ namespace RetailSystem.Data
                 .HasIndex(r => r.ReceiptNumber).HasName("Receipt_Number");
             builder.Entity<Receipt>()
                 .Property(r => r.CashPaid)
-                .HasColumnType("decimal(8,2)");
+                .HasColumnType("decimal(10,2)");
             //Unit
             builder.Entity<Unit>()
                 .HasIndex(u => u.Name)

@@ -14,13 +14,13 @@ namespace RetailSystem.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]/[action]")]
-    public class SubCategoriesController : Controller
+    public class SupplierController : Controller
     {
-        private readonly IRepository<SubCategory> _repository;
+        private readonly IRepository<Supplier> _repository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public SubCategoriesController(IRepository<SubCategory> repository, IUnitOfWork unitOfWork, IMapper mapper)
+        public SupplierController(IRepository<Supplier> repository, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _repository = repository;
             _unitOfWork = unitOfWork;
@@ -28,21 +28,21 @@ namespace RetailSystem.Controllers
         }
 
         [HttpGet]
-        public async Task<IEnumerable<SubCategoryListDto>> GetAllSubCategories()
+        public async Task<IEnumerable<SupplierListDto>> GetAllSuppliers()
         {
             var entities = await _repository.GetAllAsync();
-            return _mapper.Map<IEnumerable<SubCategoryListDto>>(entities);
+            return _mapper.Map<IEnumerable<SupplierListDto>>(entities);
         }
 
         [HttpGet]
-        public async Task<IEnumerable<SubCategoryListDto>> GetSubCategories(int categoryId)
+        public async Task<IEnumerable<SupplierListDto>> GetSuppliers(int businessId)
         {
-            var entities = await _repository.GetAsync(s => s.CategoryId == categoryId);
-            return _mapper.Map<IEnumerable<SubCategoryListDto>>(entities);
+            var entities = await _repository.GetAsync(s => s.BusinessId == businessId);
+            return _mapper.Map<IEnumerable<SupplierListDto>>(entities);
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetSubCategoryById([FromRoute] int id)
+        public async Task<IActionResult> GetSupplierById([FromRoute] int id)
         {
             if (!ModelState.IsValid)
             {
@@ -56,24 +56,24 @@ namespace RetailSystem.Controllers
                 return NotFound();
             }
 
-            var entityDto = _mapper.Map<SubCategoryDto>(entity);
+            var entityDto = _mapper.Map<SupplierDto>(entity);
             return Ok(entityDto);
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateSubCategory([FromBody] SubCategoryDto entityDto)
+        public async Task<IActionResult> CreateSupplier([FromBody] SupplierDto entityDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var entity = _mapper.Map<SubCategory>(entityDto);
+            var entity = _mapper.Map<Supplier>(entityDto);
             try
             {
                 _repository.Add(entity);
                 await _unitOfWork.SaveAsync();
-                return CreatedAtAction("GetSubCategoryById", new { id = entity.Id }, entity.Id);
+                return CreatedAtAction("GetSupplierById", new { id = entity.Id }, entity.Id);
             }
             catch (Exception e)
             {
@@ -82,7 +82,7 @@ namespace RetailSystem.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateSubCategory([FromRoute] int id, [FromBody] SubCategoryDto entityDto)
+        public async Task<IActionResult> UpdateSupplier([FromRoute] int id, [FromBody] SupplierDto entityDto)
         {
             if (!ModelState.IsValid)
             {
@@ -97,7 +97,7 @@ namespace RetailSystem.Controllers
             var entity = await _repository.GetByIdAsync(entityDto.Id);
             if (entity == null)
             {
-                return NotFound("Sub-category does not exist");
+                return NotFound("Supplier does not exist");
             }
 
             _mapper.Map(entityDto, entity);
@@ -117,12 +117,12 @@ namespace RetailSystem.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteSubCategory([FromRoute] int id)
+        public async Task<IActionResult> DeleteSupplier([FromRoute] int id)
         {
             var entity = await _repository.GetByIdAsync(id);
             if (entity == null)
             {
-                return BadRequest("The SubCategory to be deleted does not exist");
+                return BadRequest("The Supplier to be deleted does not exist");
             }
 
             _repository.Remove(entity);

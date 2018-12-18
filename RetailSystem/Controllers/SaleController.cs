@@ -14,41 +14,33 @@ namespace RetailSystem.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]/[action]")]
-    public class ReportGroupsController : Controller
+    public class SaleController : Controller
     {
-        private readonly IRepository<ReportGroup> _repository;
+        private readonly IRepository<Sale> _repository;
+        private readonly ICompositeRepository<LocationItem> _locationItemRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public ReportGroupsController(IRepository<ReportGroup> repository, IUnitOfWork unitOfWork, IMapper mapper)
+        public SaleController(IRepository<Sale> repository, ICompositeRepository<LocationItem> locationItemRepository, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _repository = repository;
+            _locationItemRepository = locationItemRepository;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
         [HttpGet]
-        public async Task<IEnumerable<ReportGroupDto>> GetAllReportGroups()
+        public async Task<IEnumerable<SaleListDto>> GetSales(int locationId, DateTime? from, DateTime? to)
         {
-            var entities = await _repository.GetAllAsync();
-            return _mapper.Map<IEnumerable<ReportGroupDto>>(entities);
-        }
-
-        [HttpGet]
-        public async Task<IEnumerable<ReportGroupDto>> GetReportGroups(int value)
-        {
-            var entities = await _repository.GetAsync(v => v.Id == value);
-            return _mapper.Map<IEnumerable<ReportGroupDto>>(entities);
+            from = from ?? DateTime.Today;
+            to = to ?? DateTime.Now;
+            var entities = await _repository.GetAsync(s => s.LocationId == locationId && s.CreationTime >= from && s.CreationTime <= to);
+            return _mapper.Map<IEnumerable<SaleListDto>>(entities);
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetReportGroupById([FromRoute] int id)
+        public async Task<IActionResult> GetSaleById([FromRoute] int id)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
             var entity = await _repository.GetByIdAsync(id);
 
             if (entity == null)
@@ -56,24 +48,44 @@ namespace RetailSystem.Controllers
                 return NotFound();
             }
 
-            var entityDto = _mapper.Map<ReportGroupDto>(entity);
+            var entityDto = _mapper.Map<SaleDto>(entity);
             return Ok(entityDto);
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateReportGroup([FromBody] ReportGroupDto entityDto)
+        public async Task<IActionResult> CreateSale([FromBody] SaleDto entityDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var entity = _mapper.Map<ReportGroup>(entityDto);
+            var entity = _mapper.Map<Sale>(entityDto);
+            _repository.Add(entity);
+
+            var itemIds = entityDto.SaleItems.Select(s => s.ItemId);
+            var locationItems = await _locationItemRepository
+                .GetAsync(l => l.LocationId == entity.LocationId && itemIds.Contains(l.ItemId));
+
+            if(locationItems.Count() != itemIds.Count())
+            {
+                return BadRequest("Duplicate item in sale or an item does not exist");
+            }
+
+            foreach(var item in locationItems)
+            {
+                item.Quantity -= entity.SaleItems.Single(s => s.ItemId == item.ItemId).Quantity;
+                if (item.Quantity < 0)
+                {
+                    return BadRequest(new { message = "Insufficient quantity", item });
+                }
+                _locationItemRepository.Update(item);
+            }
+
             try
             {
-                _repository.Add(entity);
                 await _unitOfWork.SaveAsync();
-                return CreatedAtAction("GetReportGroupById", new { id = entity.Id }, entity.Id);
+                return CreatedAtAction("GetSaleById", new { id = entity.Id }, entity.Id);
             }
             catch (Exception e)
             {
@@ -82,7 +94,7 @@ namespace RetailSystem.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateReportGroup([FromRoute] int id, [FromBody] ReportGroupDto entityDto)
+        public async Task<IActionResult> UpdateSale([FromRoute] int id, [FromBody] SaleDto entityDto)
         {
             if (!ModelState.IsValid)
             {
@@ -97,7 +109,7 @@ namespace RetailSystem.Controllers
             var entity = await _repository.GetByIdAsync(entityDto.Id);
             if (entity == null)
             {
-                return NotFound("Report does not exist");
+                return NotFound("Sale does not exist");
             }
 
             _mapper.Map(entityDto, entity);
@@ -117,12 +129,12 @@ namespace RetailSystem.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteReportGroup([FromRoute] int id)
+        public async Task<IActionResult> DeleteSale([FromRoute] int id)
         {
             var entity = await _repository.GetByIdAsync(id);
             if (entity == null)
             {
-                return BadRequest("The Report to be deleted does not exist");
+                return BadRequest("The Sale to be deleted does not exist");
             }
 
             _repository.Remove(entity);

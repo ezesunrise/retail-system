@@ -14,13 +14,13 @@ namespace RetailSystem.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]/[action]")]
-    public class BusinessesController : Controller
+    public class BusinessController : Controller
     {
         private readonly IRepository<Business> _repository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public BusinessesController(IRepository<Business> repository, IUnitOfWork unitOfWork, IMapper mapper)
+        public BusinessController(IRepository<Business> repository, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _repository = repository;
             _unitOfWork = unitOfWork;

@@ -14,13 +14,13 @@ namespace RetailSystem.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]/[action]")]
-    public class ItemsController : Controller
+    public class UnitController : Controller
     {
-        private readonly IRepository<Item> _repository;
+        private readonly IRepository<Unit> _repository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public ItemsController(IRepository<Item> repository, IUnitOfWork unitOfWork, IMapper mapper)
+        public UnitController(IRepository<Unit> repository, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _repository = repository;
             _unitOfWork = unitOfWork;
@@ -28,21 +28,14 @@ namespace RetailSystem.Controllers
         }
 
         [HttpGet]
-        public async Task<IEnumerable<ItemListDto>> GetAllItems(int businessId)
+        public async Task<IEnumerable<UnitListDto>> GetAllUnits(int businessId)
         {
-            var entities = await _repository.GetAsync(i => i.Category.BusinessId == businessId);
-            return _mapper.Map<IEnumerable<ItemListDto>>(entities);
-        }
-
-        [HttpGet]
-        public async Task<IEnumerable<ItemListDto>> GetItemsByCategory(int categoryId)
-        {
-            var entities = await _repository.GetAsync(i => i.CategoryId == categoryId);
-            return _mapper.Map<IEnumerable<ItemListDto>>(entities);
+            var entities = await _repository.GetAsync(c => c.BusinessId == businessId);
+            return _mapper.Map<IEnumerable<UnitListDto>>(entities);
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetItemById([FromRoute] int id)
+        public async Task<IActionResult> GetUnitById([FromRoute] int id)
         {
             if (!ModelState.IsValid)
             {
@@ -56,24 +49,24 @@ namespace RetailSystem.Controllers
                 return NotFound();
             }
 
-            var entityDto = _mapper.Map<ItemDto>(entity);
+            var entityDto = _mapper.Map<UnitDto>(entity);
             return Ok(entityDto);
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateItem([FromBody] ItemDto entityDto)
+        public async Task<IActionResult> CreateUnit([FromBody] UnitDto entityDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var entity = _mapper.Map<Item>(entityDto);
+            var entity = _mapper.Map<Unit>(entityDto);
             try
             {
                 _repository.Add(entity);
                 await _unitOfWork.SaveAsync();
-                return CreatedAtAction("GetItemById", new { id = entity.Id }, entity.Id);
+                return CreatedAtAction("GetUnitById", new { id = entity.Id }, entity.Id);
             }
             catch (Exception e)
             {
@@ -82,7 +75,7 @@ namespace RetailSystem.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateItem([FromRoute] int id, [FromBody] ItemDto entityDto)
+        public async Task<IActionResult> UpdateUnit([FromRoute] int id, [FromBody] UnitDto entityDto)
         {
             if (!ModelState.IsValid)
             {
@@ -97,7 +90,7 @@ namespace RetailSystem.Controllers
             var entity = await _repository.GetByIdAsync(entityDto.Id);
             if (entity == null)
             {
-                return NotFound("Item does not exist");
+                return NotFound("Unit does not exist");
             }
 
             _mapper.Map(entityDto, entity);
@@ -117,12 +110,12 @@ namespace RetailSystem.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteItem([FromRoute] int id)
+        public async Task<IActionResult> DeleteUnit([FromRoute] int id)
         {
             var entity = await _repository.GetByIdAsync(id);
             if (entity == null)
             {
-                return BadRequest("The Item to be deleted does not exist");
+                return BadRequest("The Unit to be deleted does not exist");
             }
 
             _repository.Remove(entity);

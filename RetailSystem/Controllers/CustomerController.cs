@@ -14,13 +14,13 @@ namespace RetailSystem.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]/[action]")]
-    public class CategoriesController : Controller
+    public class CustomerController : Controller
     {
-        private readonly IRepository<Category> _repository;
+        private readonly IRepository<Customer> _repository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public CategoriesController(IRepository<Category> repository, IUnitOfWork unitOfWork, IMapper mapper)
+        public CustomerController(IRepository<Customer> repository, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _repository = repository;
             _unitOfWork = unitOfWork;
@@ -28,21 +28,21 @@ namespace RetailSystem.Controllers
         }
 
         [HttpGet]
-        public async Task<IEnumerable<CategoryListDto>> GetAllCategories()
+        public async Task<IEnumerable<CustomerListDto>> GetAllCustomers()
         {
             var entities = await _repository.GetAllAsync();
-            return _mapper.Map<IEnumerable<CategoryListDto>>(entities);
+            return _mapper.Map<IEnumerable<CustomerListDto>>(entities);
         }
 
         [HttpGet]
-        public async Task<IEnumerable<CategoryListDto>> GetCategories(int businessId)
+        public async Task<IEnumerable<CustomerListDto>> GetCustomers(int businessId)
         {
             var entities = await _repository.GetAsync(c => c.BusinessId == businessId);
-            return _mapper.Map<IEnumerable<CategoryListDto>>(entities);
+            return _mapper.Map<IEnumerable<CustomerListDto>>(entities);
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetCategoryById([FromRoute] int id)
+        public async Task<IActionResult> GetCustomerById([FromRoute] int id)
         {
             if (!ModelState.IsValid)
             {
@@ -56,24 +56,24 @@ namespace RetailSystem.Controllers
                 return NotFound();
             }
 
-            var entityDto = _mapper.Map<CategoryDto>(entity);
+            var entityDto = _mapper.Map<CustomerDto>(entity);
             return Ok(entityDto);
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateCategory([FromBody] CategoryDto entityDto)
+        public async Task<IActionResult> CreateCustomer([FromBody] CustomerDto entityDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var entity = _mapper.Map<Category>(entityDto);
+            var entity = _mapper.Map<Customer>(entityDto);
             try
             {
                 _repository.Add(entity);
                 await _unitOfWork.SaveAsync();
-                return CreatedAtAction("GetCategoryById", new { id = entity.Id }, entity.Id);
+                return CreatedAtAction("GetCustomerById", new { id = entity.Id }, entity.Id);
             }
             catch (Exception e)
             {
@@ -82,7 +82,7 @@ namespace RetailSystem.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCategory([FromRoute] int id, [FromBody] CategoryDto entityDto)
+        public async Task<IActionResult> UpdateCustomer([FromRoute] int id, [FromBody] CustomerDto entityDto)
         {
             if (!ModelState.IsValid)
             {
@@ -97,7 +97,7 @@ namespace RetailSystem.Controllers
             var entity = await _repository.GetByIdAsync(entityDto.Id);
             if (entity == null)
             {
-                return NotFound("Category does not exist");
+                return NotFound("Customer does not exist");
             }
 
             _mapper.Map(entityDto, entity);
@@ -117,12 +117,12 @@ namespace RetailSystem.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCategory([FromRoute] int id)
+        public async Task<IActionResult> DeleteCustomer([FromRoute] int id)
         {
             var entity = await _repository.GetByIdAsync(id);
             if (entity == null)
             {
-                return BadRequest("The Category to be deleted does not exist");
+                return BadRequest("The Customer to be deleted does not exist");
             }
 
             _repository.Remove(entity);

@@ -8,9 +8,7 @@ namespace RetailSystem.Dtos
     public class SupplyDto : EntityDto
     {
         public string SupplyNumber { get; set; }
-
-        public string Description { get; set; }
-
+        
         [StringLength(1024)]
         public string Note { get; set; }
 

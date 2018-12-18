@@ -8,7 +8,7 @@ namespace RetailSystem.Dtos
     {
         public string Name { get; set; }
 
-        public int Type { get; set; }
+        public LocationType Type { get; set; }
         public string TypeName { get => Type.ToString(); }
 
         public Status Status { get; set; }

@@ -14,34 +14,33 @@ namespace RetailSystem.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]/[action]")]
-    public class UnitsController : Controller
+    public class SupplyController : Controller
     {
-        private readonly IRepository<Unit> _repository;
+        private readonly IRepository<Supply> _repository;
+        private readonly ICompositeRepository<LocationItem> _locationItemRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public UnitsController(IRepository<Unit> repository, IUnitOfWork unitOfWork, IMapper mapper)
+        public SupplyController(IRepository<Supply> repository, ICompositeRepository<LocationItem> locationItemRepository, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _repository = repository;
+            _locationItemRepository = locationItemRepository;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
         [HttpGet]
-        public async Task<IEnumerable<UnitListDto>> GetAllUnits(int businessId)
+        public async Task<IEnumerable<SupplyListDto>> GetSupplies(int locationId, DateTime? from, DateTime? to)
         {
-            var entities = await _repository.GetAsync(c => c.BusinessId == businessId);
-            return _mapper.Map<IEnumerable<UnitListDto>>(entities);
+            from = from ?? DateTime.Today;
+            to = to ?? DateTime.Now;
+            var entities = await _repository.GetAsync(s => s.LocationId == locationId && s.CreationTime >= from && s.CreationTime <= to);
+            return _mapper.Map<IEnumerable<SupplyListDto>>(entities);
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetUnitById([FromRoute] int id)
+        public async Task<IActionResult> GetSupplyById([FromRoute] int id)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
             var entity = await _repository.GetByIdAsync(id);
 
             if (entity == null)
@@ -49,24 +48,44 @@ namespace RetailSystem.Controllers
                 return NotFound();
             }
 
-            var entityDto = _mapper.Map<UnitDto>(entity);
+            var entityDto = _mapper.Map<SupplyDto>(entity);
             return Ok(entityDto);
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateUnit([FromBody] UnitDto entityDto)
+        public async Task<IActionResult> CreateSupply([FromBody] SupplyDto entityDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var entity = _mapper.Map<Unit>(entityDto);
+            var entity = _mapper.Map<Supply>(entityDto);
+            _repository.Add(entity);
+
+            var itemIds = entityDto.SupplyItems.Select(s => s.ItemId);
+            var locationItems = await _locationItemRepository
+                .GetAsync(l => l.LocationId == entity.LocationId && itemIds.Contains(l.ItemId));
+
+            if (locationItems.Count() != itemIds.Count())
+            {
+                return BadRequest("Duplicate item in supply list or an item does not exist");
+            }
+
+            foreach (var item in locationItems)
+            {
+                item.Quantity -= entity.SupplyItems.Single(s => s.ItemId == item.ItemId).Quantity;
+                if (item.Quantity < 0)
+                {
+                    return BadRequest(new { message = "Insufficient quantity available", item });
+                }
+                _locationItemRepository.Update(item);
+            }
+
             try
             {
-                _repository.Add(entity);
                 await _unitOfWork.SaveAsync();
-                return CreatedAtAction("GetUnitById", new { id = entity.Id }, entity.Id);
+                return CreatedAtAction("GetSupplyById", new { id = entity.Id }, entity.Id);
             }
             catch (Exception e)
             {
@@ -75,7 +94,7 @@ namespace RetailSystem.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateUnit([FromRoute] int id, [FromBody] UnitDto entityDto)
+        public async Task<IActionResult> UpdateSupply([FromRoute] int id, [FromBody] SupplyDto entityDto)
         {
             if (!ModelState.IsValid)
             {
@@ -90,7 +109,7 @@ namespace RetailSystem.Controllers
             var entity = await _repository.GetByIdAsync(entityDto.Id);
             if (entity == null)
             {
-                return NotFound("Unit does not exist");
+                return NotFound("Supply does not exist");
             }
 
             _mapper.Map(entityDto, entity);
@@ -110,12 +129,12 @@ namespace RetailSystem.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUnit([FromRoute] int id)
+        public async Task<IActionResult> DeleteSupply([FromRoute] int id)
         {
             var entity = await _repository.GetByIdAsync(id);
             if (entity == null)
             {
-                return BadRequest("The Unit to be deleted does not exist");
+                return BadRequest("The Supply to be deleted does not exist");
             }
 
             _repository.Remove(entity);

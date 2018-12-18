@@ -14,13 +14,13 @@ namespace RetailSystem.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]/[action]")]
-    public class CustomersController : Controller
+    public class ItemController : Controller
     {
-        private readonly IRepository<Customer> _repository;
+        private readonly IRepository<Item> _repository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public CustomersController(IRepository<Customer> repository, IUnitOfWork unitOfWork, IMapper mapper)
+        public ItemController(IRepository<Item> repository, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _repository = repository;
             _unitOfWork = unitOfWork;
@@ -28,21 +28,21 @@ namespace RetailSystem.Controllers
         }
 
         [HttpGet]
-        public async Task<IEnumerable<CustomerListDto>> GetAllCustomers()
+        public async Task<IEnumerable<ItemListDto>> GetAllItems(int businessId)
         {
-            var entities = await _repository.GetAllAsync();
-            return _mapper.Map<IEnumerable<CustomerListDto>>(entities);
+            var entities = await _repository.GetAsync(i => i.Category.BusinessId == businessId);
+            return _mapper.Map<IEnumerable<ItemListDto>>(entities);
         }
 
         [HttpGet]
-        public async Task<IEnumerable<CustomerListDto>> GetCustomers(int businessId)
+        public async Task<IEnumerable<ItemListDto>> GetItemsByCategory(int categoryId)
         {
-            var entities = await _repository.GetAsync(c => c.BusinessId == businessId);
-            return _mapper.Map<IEnumerable<CustomerListDto>>(entities);
+            var entities = await _repository.GetAsync(i => i.CategoryId == categoryId);
+            return _mapper.Map<IEnumerable<ItemListDto>>(entities);
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetCustomerById([FromRoute] int id)
+        public async Task<IActionResult> GetItemById([FromRoute] int id)
         {
             if (!ModelState.IsValid)
             {
@@ -56,24 +56,24 @@ namespace RetailSystem.Controllers
                 return NotFound();
             }
 
-            var entityDto = _mapper.Map<CustomerDto>(entity);
+            var entityDto = _mapper.Map<ItemDto>(entity);
             return Ok(entityDto);
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateCustomer([FromBody] CustomerDto entityDto)
+        public async Task<IActionResult> CreateItem([FromBody] ItemDto entityDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var entity = _mapper.Map<Customer>(entityDto);
+            var entity = _mapper.Map<Item>(entityDto);
             try
             {
                 _repository.Add(entity);
                 await _unitOfWork.SaveAsync();
-                return CreatedAtAction("GetCustomerById", new { id = entity.Id }, entity.Id);
+                return CreatedAtAction("GetItemById", new { id = entity.Id }, entity.Id);
             }
             catch (Exception e)
             {
@@ -82,7 +82,7 @@ namespace RetailSystem.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCustomer([FromRoute] int id, [FromBody] CustomerDto entityDto)
+        public async Task<IActionResult> UpdateItem([FromRoute] int id, [FromBody] ItemDto entityDto)
         {
             if (!ModelState.IsValid)
             {
@@ -97,7 +97,7 @@ namespace RetailSystem.Controllers
             var entity = await _repository.GetByIdAsync(entityDto.Id);
             if (entity == null)
             {
-                return NotFound("Customer does not exist");
+                return NotFound("Item does not exist");
             }
 
             _mapper.Map(entityDto, entity);
@@ -117,12 +117,12 @@ namespace RetailSystem.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCustomer([FromRoute] int id)
+        public async Task<IActionResult> DeleteItem([FromRoute] int id)
         {
             var entity = await _repository.GetByIdAsync(id);
             if (entity == null)
             {
-                return BadRequest("The Customer to be deleted does not exist");
+                return BadRequest("The Item to be deleted does not exist");
             }
 
             _repository.Remove(entity);

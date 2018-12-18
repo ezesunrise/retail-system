@@ -14,13 +14,13 @@ namespace RetailSystem.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]/[action]")]
-    public class ManufacturersController : Controller
+    public class LocationController : Controller
     {
-        private readonly IRepository<Manufacturer> _repository;
+        private readonly IRepository<Location> _repository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public ManufacturersController(IRepository<Manufacturer> repository, IUnitOfWork unitOfWork, IMapper mapper)
+        public LocationController(IRepository<Location> repository, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _repository = repository;
             _unitOfWork = unitOfWork;
@@ -28,21 +28,14 @@ namespace RetailSystem.Controllers
         }
 
         [HttpGet]
-        public async Task<IEnumerable<ManufacturerListDto>> GetAllManufacturers()
+        public async Task<IEnumerable<LocationListDto>> GetAllLocations(int businessId)
         {
-            var entities = await _repository.GetAllAsync();
-            return _mapper.Map<IEnumerable<ManufacturerListDto>>(entities);
-        }
-
-        [HttpGet]
-        public async Task<IEnumerable<ManufacturerListDto>> GetManufacturers(int businessId)
-        {
-            var entities = await _repository.GetAsync(m => m.BusinessId == businessId);
-            return _mapper.Map<IEnumerable<ManufacturerListDto>>(entities);
+            var entities = await _repository.GetAsync(l => l.BusinessId == businessId);
+            return _mapper.Map<IEnumerable<LocationListDto>>(entities);
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetManufacturerById([FromRoute] int id)
+        public async Task<IActionResult> GetLocationById([FromRoute] int id)
         {
             if (!ModelState.IsValid)
             {
@@ -56,24 +49,24 @@ namespace RetailSystem.Controllers
                 return NotFound();
             }
 
-            var entityDto = _mapper.Map<ManufacturerDto>(entity);
+            var entityDto = _mapper.Map<LocationDto>(entity);
             return Ok(entityDto);
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateManufacturer([FromBody] ManufacturerDto entityDto)
+        public async Task<IActionResult> CreateLocation([FromBody] LocationDto entityDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var entity = _mapper.Map<Manufacturer>(entityDto);
+            var entity = _mapper.Map<Location>(entityDto);
             try
             {
                 _repository.Add(entity);
                 await _unitOfWork.SaveAsync();
-                return CreatedAtAction("GetManufacturerById", new { id = entity.Id }, entity.Id);
+                return CreatedAtAction("GetLocationById", new { id = entity.Id }, entity.Id);
             }
             catch (Exception e)
             {
@@ -82,7 +75,7 @@ namespace RetailSystem.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateManufacturer([FromRoute] int id, [FromBody] ManufacturerDto entityDto)
+        public async Task<IActionResult> UpdateLocation([FromRoute] int id, [FromBody] LocationDto entityDto)
         {
             if (!ModelState.IsValid)
             {
@@ -97,7 +90,7 @@ namespace RetailSystem.Controllers
             var entity = await _repository.GetByIdAsync(entityDto.Id);
             if (entity == null)
             {
-                return NotFound("Manufacturer does not exist");
+                return BadRequest("Location does not exist");
             }
 
             _mapper.Map(entityDto, entity);
@@ -117,12 +110,12 @@ namespace RetailSystem.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteManufacturer([FromRoute] int id)
+        public async Task<IActionResult> DeleteLocation([FromRoute] int id)
         {
             var entity = await _repository.GetByIdAsync(id);
             if (entity == null)
             {
-                return BadRequest("The Manufacturer to be deleted does not exist");
+                return BadRequest("The Location to be deleted does not exist");
             }
 
             _repository.Remove(entity);

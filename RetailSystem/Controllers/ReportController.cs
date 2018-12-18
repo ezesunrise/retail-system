@@ -14,13 +14,13 @@ namespace RetailSystem.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]/[action]")]
-    public class LocationsController : Controller
+    public class ReportController : Controller
     {
-        private readonly IRepository<Location> _repository;
+        private readonly IRepository<ReportGroup> _repository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public LocationsController(IRepository<Location> repository, IUnitOfWork unitOfWork, IMapper mapper)
+        public ReportController(IRepository<ReportGroup> repository, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _repository = repository;
             _unitOfWork = unitOfWork;
@@ -28,14 +28,21 @@ namespace RetailSystem.Controllers
         }
 
         [HttpGet]
-        public async Task<IEnumerable<LocationListDto>> GetAllLocations(int businessId)
+        public async Task<IEnumerable<ReportGroupDto>> GetAllReportGroups()
         {
-            var entities = await _repository.GetAsync(l => l.BusinessId == businessId);
-            return _mapper.Map<IEnumerable<LocationListDto>>(entities);
+            var entities = await _repository.GetAllAsync();
+            return _mapper.Map<IEnumerable<ReportGroupDto>>(entities);
+        }
+
+        [HttpGet]
+        public async Task<IEnumerable<ReportGroupDto>> GetReportGroups(int value)
+        {
+            var entities = await _repository.GetAsync(v => v.Id == value);
+            return _mapper.Map<IEnumerable<ReportGroupDto>>(entities);
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetLocationById([FromRoute] int id)
+        public async Task<IActionResult> GetReportGroupById([FromRoute] int id)
         {
             if (!ModelState.IsValid)
             {
@@ -49,24 +56,24 @@ namespace RetailSystem.Controllers
                 return NotFound();
             }
 
-            var entityDto = _mapper.Map<LocationDto>(entity);
+            var entityDto = _mapper.Map<ReportGroupDto>(entity);
             return Ok(entityDto);
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateLocation([FromBody] LocationDto entityDto)
+        public async Task<IActionResult> CreateReportGroup([FromBody] ReportGroupDto entityDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var entity = _mapper.Map<Location>(entityDto);
+            var entity = _mapper.Map<ReportGroup>(entityDto);
             try
             {
                 _repository.Add(entity);
                 await _unitOfWork.SaveAsync();
-                return CreatedAtAction("GetLocationById", new { id = entity.Id }, entity.Id);
+                return CreatedAtAction("GetReportGroupById", new { id = entity.Id }, entity.Id);
             }
             catch (Exception e)
             {
@@ -75,7 +82,7 @@ namespace RetailSystem.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateLocation([FromRoute] int id, [FromBody] LocationDto entityDto)
+        public async Task<IActionResult> UpdateReportGroup([FromRoute] int id, [FromBody] ReportGroupDto entityDto)
         {
             if (!ModelState.IsValid)
             {
@@ -90,7 +97,7 @@ namespace RetailSystem.Controllers
             var entity = await _repository.GetByIdAsync(entityDto.Id);
             if (entity == null)
             {
-                return BadRequest("Location does not exist");
+                return NotFound("Report does not exist");
             }
 
             _mapper.Map(entityDto, entity);
@@ -110,12 +117,12 @@ namespace RetailSystem.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteLocation([FromRoute] int id)
+        public async Task<IActionResult> DeleteReportGroup([FromRoute] int id)
         {
             var entity = await _repository.GetByIdAsync(id);
             if (entity == null)
             {
-                return BadRequest("The Location to be deleted does not exist");
+                return BadRequest("The Report to be deleted does not exist");
             }
 
             _repository.Remove(entity);

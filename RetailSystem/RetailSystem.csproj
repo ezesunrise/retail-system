@@ -19,6 +19,10 @@
     <Compile Remove="Migrations\20181202035546_RemovedNullablesAndAdedDiscount.Designer.cs" />
     <Compile Remove="Migrations\20181203155436_AddedUniqueIndicesAndProperties.cs" />
     <Compile Remove="Migrations\20181203155436_AddedUniqueIndicesAndProperties.Designer.cs" />
+    <Compile Remove="Migrations\20181218094634_AddedBackOrder.cs" />
+    <Compile Remove="Migrations\20181218094634_AddedBackOrder.Designer.cs" />
+    <Compile Remove="Migrations\20181218100352_AddedBackOrder.cs" />
+    <Compile Remove="Migrations\20181218100352_AddedBackOrder.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

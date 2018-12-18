@@ -14,33 +14,41 @@ namespace RetailSystem.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]/[action]")]
-    public class SalesController : Controller
+    public class CategoryController : Controller
     {
-        private readonly IRepository<Sale> _repository;
-        private readonly ICompositeRepository<LocationItem> _locationItemRepository;
+        private readonly IRepository<Category> _repository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public SalesController(IRepository<Sale> repository, ICompositeRepository<LocationItem> locationItemRepository, IUnitOfWork unitOfWork, IMapper mapper)
+        public CategoryController(IRepository<Category> repository, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _repository = repository;
-            _locationItemRepository = locationItemRepository;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
         [HttpGet]
-        public async Task<IEnumerable<SaleListDto>> GetSales(int locationId, DateTime? from, DateTime? to)
+        public async Task<IEnumerable<CategoryListDto>> GetAllCategories()
         {
-            from = from ?? DateTime.Today;
-            to = to ?? DateTime.Now;
-            var entities = await _repository.GetAsync(s => s.LocationId == locationId && s.CreationTime >= from && s.CreationTime <= to);
-            return _mapper.Map<IEnumerable<SaleListDto>>(entities);
+            var entities = await _repository.GetAllAsync();
+            return _mapper.Map<IEnumerable<CategoryListDto>>(entities);
+        }
+
+        [HttpGet]
+        public async Task<IEnumerable<CategoryListDto>> GetCategories(int businessId)
+        {
+            var entities = await _repository.GetAsync(c => c.BusinessId == businessId);
+            return _mapper.Map<IEnumerable<CategoryListDto>>(entities);
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetSaleById([FromRoute] int id)
+        public async Task<IActionResult> GetCategoryById([FromRoute] int id)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var entity = await _repository.GetByIdAsync(id);
 
             if (entity == null)
@@ -48,44 +56,24 @@ namespace RetailSystem.Controllers
                 return NotFound();
             }
 
-            var entityDto = _mapper.Map<SaleDto>(entity);
+            var entityDto = _mapper.Map<CategoryDto>(entity);
             return Ok(entityDto);
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateSale([FromBody] SaleDto entityDto)
+        public async Task<IActionResult> CreateCategory([FromBody] CategoryDto entityDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var entity = _mapper.Map<Sale>(entityDto);
-            _repository.Add(entity);
-
-            var itemIds = entityDto.SaleItems.Select(s => s.ItemId);
-            var locationItems = await _locationItemRepository
-                .GetAsync(l => l.LocationId == entity.LocationId && itemIds.Contains(l.ItemId));
-
-            if(locationItems.Count() != itemIds.Count())
-            {
-                return BadRequest("Duplicate item in sale or an item does not exist");
-            }
-
-            foreach(var item in locationItems)
-            {
-                item.Quantity -= entity.SaleItems.Single(s => s.ItemId == item.ItemId).Quantity;
-                if (item.Quantity < 0)
-                {
-                    return BadRequest(new { message = "Insufficient quantity", item });
-                }
-                _locationItemRepository.Update(item);
-            }
-
+            var entity = _mapper.Map<Category>(entityDto);
             try
             {
+                _repository.Add(entity);
                 await _unitOfWork.SaveAsync();
-                return CreatedAtAction("GetSaleById", new { id = entity.Id }, entity.Id);
+                return CreatedAtAction("GetCategoryById", new { id = entity.Id }, entity.Id);
             }
             catch (Exception e)
             {
@@ -94,7 +82,7 @@ namespace RetailSystem.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateSale([FromRoute] int id, [FromBody] SaleDto entityDto)
+        public async Task<IActionResult> UpdateCategory([FromRoute] int id, [FromBody] CategoryDto entityDto)
         {
             if (!ModelState.IsValid)
             {
@@ -109,7 +97,7 @@ namespace RetailSystem.Controllers
             var entity = await _repository.GetByIdAsync(entityDto.Id);
             if (entity == null)
             {
-                return NotFound("Sale does not exist");
+                return NotFound("Category does not exist");
             }
 
             _mapper.Map(entityDto, entity);
@@ -129,12 +117,12 @@ namespace RetailSystem.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteSale([FromRoute] int id)
+        public async Task<IActionResult> DeleteCategory([FromRoute] int id)
         {
             var entity = await _repository.GetByIdAsync(id);
             if (entity == null)
             {
-                return BadRequest("The Sale to be deleted does not exist");
+                return BadRequest("The Category to be deleted does not exist");
             }
 
             _repository.Remove(entity);

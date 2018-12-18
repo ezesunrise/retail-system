@@ -2,11 +2,17 @@
 using RetailSystem.Models.Enums;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace RetailSystem.Dtos
 {
     public class LocationDto : EntityDto
     {
+        [Required]
+        [StringLength(5, MinimumLength = 5)]
+        public string Code { get; set; }
+
+        [Required]
         public string Name { get; set; }
 
         public int Type { get; set; }
@@ -37,8 +43,8 @@ namespace RetailSystem.Dtos
             }
         }
 
-        public decimal? Target { get; set; }
-        public int? TargetType { get; set; }
+        public decimal Target { get; set; }
+        public int TargetType { get; set; }
 
         public string Address { get; set; }
         

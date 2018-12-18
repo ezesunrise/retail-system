@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RetailSystem.Data;
 
 namespace RetailSystem.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20181218100848_RemovedIdentityInDBContext")]
+    partial class RemovedIdentityInDBContext
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -225,12 +227,12 @@ namespace RetailSystem.Migrations
                     b.Property<byte>("Tax");
 
                     b.Property<decimal>("UnitCost")
-                        .HasColumnType("decimal(10,2)");
+                        .HasColumnType("decimal(8,2)");
 
                     b.Property<int>("UnitId");
 
                     b.Property<decimal>("UnitPrice")
-                        .HasColumnType("decimal(10,2)");
+                        .HasColumnType("decimal(8,2)");
 
                     b.HasKey("Id");
 
@@ -279,7 +281,7 @@ namespace RetailSystem.Migrations
                     b.Property<int>("Status");
 
                     b.Property<decimal?>("Target")
-                        .HasColumnType("decimal(12,2)");
+                        .HasColumnType("decimal(8,2)");
 
                     b.Property<int?>("TargetType");
 
@@ -319,7 +321,7 @@ namespace RetailSystem.Migrations
                     b.Property<int>("Status");
 
                     b.Property<decimal>("UnitPrice")
-                        .HasColumnType("decimal(10,2)");
+                        .HasColumnType("decimal(8,2)");
 
                     b.HasKey("LocationId", "ItemId")
                         .HasName("LocationItem_Id");
@@ -412,7 +414,7 @@ namespace RetailSystem.Migrations
                     b.Property<int>("QuantityDelivered");
 
                     b.Property<decimal>("UnitCost")
-                        .HasColumnType("decimal(10,2)");
+                        .HasColumnType("decimal(8,2)");
 
                     b.HasKey("PurchaseOrderId", "ItemId")
                         .HasName("PurchaseOrderItem_Id");
@@ -429,7 +431,7 @@ namespace RetailSystem.Migrations
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<decimal>("CashPaid")
-                        .HasColumnType("decimal(10,2)");
+                        .HasColumnType("decimal(8,2)");
 
                     b.Property<string>("Note")
                         .HasMaxLength(1024);
@@ -528,7 +530,7 @@ namespace RetailSystem.Migrations
                     b.Property<int>("Quantity");
 
                     b.Property<decimal>("UnitPrice")
-                        .HasColumnType("decimal(10,2)");
+                        .HasColumnType("decimal(8,2)");
 
                     b.HasKey("SaleId", "ItemId")
                         .HasName("SaleItem_Id");
@@ -656,7 +658,7 @@ namespace RetailSystem.Migrations
                     b.Property<int>("QuantityDelivered");
 
                     b.Property<decimal>("UnitPrice")
-                        .HasColumnType("decimal(10,2)");
+                        .HasColumnType("decimal(8,2)");
 
                     b.HasKey("SupplyId", "ItemId")
                         .HasName("SupplyItem_Id");

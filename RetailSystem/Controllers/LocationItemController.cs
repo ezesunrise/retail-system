@@ -14,13 +14,13 @@ namespace RetailSystem.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]/[action]")]
-    public class LocationItemsController : Controller
+    public class LocationItemController : Controller
     {
         private readonly ICompositeRepository<LocationItem> _repository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public LocationItemsController(ICompositeRepository<LocationItem> repository, IUnitOfWork unitOfWork, IMapper mapper)
+        public LocationItemController(ICompositeRepository<LocationItem> repository, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _repository = repository;
             _unitOfWork = unitOfWork;

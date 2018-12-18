@@ -18,6 +18,13 @@ using NSwag.AspNetCore;
 using System.Reflection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using RetailSystem.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
+using System.Security.Claims;
+using RetailSystem.Helpers;
+using System.Text;
+using RetailSystem.Services;
+using Microsoft.IdentityModel.Tokens;
 
 namespace RetailSystem
 {
@@ -40,6 +47,8 @@ namespace RetailSystem
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
+            services.AddCors();
+
             //services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             //    .AddJwtBearer(options =>
             //    {
@@ -49,6 +58,7 @@ namespace RetailSystem
             services.AddAutoMapper();
 
             // Inject Repository Implementations
+            //services.AddScoped<IAppUserService, AppUserService>();
             services.AddScoped<IRepository<Item>, Repository<Item>>();
             services.AddScoped<IRepository<Business>, Repository<Business>>();
             services.AddScoped<IRepository<Category>, Repository<Category>>();
@@ -64,6 +74,7 @@ namespace RetailSystem
             services.AddScoped<IRepository<Sale>, SaleRepository>();
             services.AddScoped<IRepository<PurchaseOrder>, PurchaseOrderRepository>();
             services.AddScoped<IRepository<Transfer>, TransferRepository>();
+            services.AddScoped<IRepository<Supply>, SupplyRepository>();
             services.AddScoped<IRepository<Invoice>, InvoiceRepository>();
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -88,8 +99,49 @@ namespace RetailSystem
                 options.UseSqlServer(
                     Configuration.GetConnectionString("DefaultConnection")));
 
-            services.AddDefaultIdentity<IdentityUser>()
+            services.AddIdentity<AppUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
+
+            // configure strongly typed settings object
+            var appSettingsSection = Configuration.GetSection("AppSettings");
+            services.Configure<AppSettings>(appSettingsSection);
+
+            // configure jwt authentication
+            var appSettings = appSettingsSection.Get<AppSettings>();
+            var key = Encoding.ASCII.GetBytes(appSettings.Secret);
+            services.AddAuthentication(x =>
+            {
+                x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(x =>
+            {
+                x.Events = new JwtBearerEvents
+                {
+                    OnTokenValidated = context =>
+                    {
+                        var userService = context.HttpContext.RequestServices.GetRequiredService<IAppUserService>();
+                        var userId = context.Principal.Identity.Name;
+                        var user = userService.GetById(userId);
+                        if (user == null)
+                        {
+                            // return unauthorized if user does not exist
+                            context.Fail("Unauthorized");
+                        }
+                        return Task.CompletedTask;
+                    }
+                };
+                // true for production
+                x.RequireHttpsMetadata = false;
+                x.SaveToken = true;
+                x.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = false,
+                    ValidateAudience = false
+                };
+            });
 
             services.AddSwaggerDocument(config =>
             {
@@ -106,6 +158,23 @@ namespace RetailSystem
                 };
             });
 
+            //services.AddAuthorization(options =>
+            //{
+            //    options.AddPolicy("apipolicy", b =>
+            //    {
+            //        b.RequireAuthenticatedUser();
+            //        b.RequireClaim(ClaimTypes.Role, "Access.Api");
+            //        b.AuthenticationSchemes = new List<string>
+            //        {
+            //            JwtBearerDefaults.AuthenticationScheme
+            //        };
+            //    });
+            //    options.AddPolicy("defaultpolicy", b =>
+            //    {
+            //        b.RequireAuthenticatedUser();
+            //    });
+            //});
+
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
 
@@ -121,6 +190,11 @@ namespace RetailSystem
             {
                 app.UseExceptionHandler("/Home/Error");
                 app.UseHsts();
+                app.UseCors(x => x
+                .AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials());
             }
 
             app.UseHttpsRedirection();
