@@ -6,6 +6,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NSwag.Annotations;
 using RetailSystem.Data;
 using RetailSystem.Dtos;
 using RetailSystem.Models;
@@ -53,6 +54,7 @@ namespace RetailSystem.Controllers
         }
 
         [HttpGet("{id}")]
+        [SwaggerResponse(typeof(TransferDto))]
         public async Task<IActionResult> GetTransferById([FromRoute] int id)
         {
             var entity = await _repository.GetByIdAsync(id);
@@ -67,6 +69,7 @@ namespace RetailSystem.Controllers
         }
 
         [HttpPost]
+        [SwaggerResponse(typeof(TransferDto))]
         public async Task<IActionResult> CreateTransfer([FromBody] TransferDto entityDto)
         {
             if (!ModelState.IsValid)
@@ -122,7 +125,9 @@ namespace RetailSystem.Controllers
             try
             {
                 await _unitOfWork.SaveAsync();
-                return CreatedAtAction("GetTransferById", new { id = entity.Id }, entity.Id);
+                var createdResult = CreatedAtAction("GetTransferById", new { id = entity.Id }, entity.Id);
+                createdResult.StatusCode = 200;
+                return createdResult;
             }
             catch (Exception e)
             {
@@ -131,6 +136,7 @@ namespace RetailSystem.Controllers
         }
 
         [HttpPut("{id}")]
+        [SwaggerResponse(typeof(TransferDto))]
         public async Task<IActionResult> UpdateTransfer([FromRoute] int id, [FromBody] TransferDto entityDto)
         {
             if (!ModelState.IsValid)
@@ -162,10 +168,11 @@ namespace RetailSystem.Controllers
                 throw new Exception("An unexpected error occured. Could not update.");
             }
 
-            return NoContent();
+            return Ok(_mapper.Map<TransferDto>(entity));
         }
 
         [HttpDelete("{id}")]
+        [SwaggerResponse(typeof(int))]
         public async Task<IActionResult> DeleteTransfer([FromRoute] int id)
         {
             var entity = await _repository.GetByIdAsync(id);
@@ -179,7 +186,7 @@ namespace RetailSystem.Controllers
             try
             {
                 await _unitOfWork.SaveAsync();
-                return Ok();
+                return Ok(entity.Id);
             }
             catch (Exception)
             {

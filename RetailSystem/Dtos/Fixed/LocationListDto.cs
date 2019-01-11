@@ -6,6 +6,8 @@ namespace RetailSystem.Dtos
 {
     public class LocationListDto : EntityDto
     {
+        public string Code { get; set; }
+
         public string Name { get; set; }
 
         public LocationType Type { get; set; }
@@ -15,13 +17,14 @@ namespace RetailSystem.Dtos
         public string StatusName { get => Status.ToString(); }
 
         public decimal? Target { get; set; }
-        public int? TargetType { get; set; }
+        public TargetType? TargetType { get; set; }
+        public string TargetTypeName { get => TargetType.ToString(); }
 
         public string Address { get; set; }
         
-        public string PhoneNumber { get; set; }
+        public string PhoneNumber1 { get; set; }
         
-        public string AlternatePhoneNumber { get; set; }
+        public string PhoneNumber2 { get; set; }
 
         public string ContactPerson { get; set; }
 

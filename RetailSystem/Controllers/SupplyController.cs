@@ -6,6 +6,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NSwag.Annotations;
 using RetailSystem.Data;
 using RetailSystem.Dtos;
 using RetailSystem.Models;
@@ -39,6 +40,7 @@ namespace RetailSystem.Controllers
         }
 
         [HttpGet("{id}")]
+        [SwaggerResponse(typeof(SupplyDto))]
         public async Task<IActionResult> GetSupplyById([FromRoute] int id)
         {
             var entity = await _repository.GetByIdAsync(id);
@@ -53,6 +55,7 @@ namespace RetailSystem.Controllers
         }
 
         [HttpPost]
+        [SwaggerResponse(typeof(SupplyDto))]
         public async Task<IActionResult> CreateSupply([FromBody] SupplyDto entityDto)
         {
             if (!ModelState.IsValid)
@@ -85,7 +88,9 @@ namespace RetailSystem.Controllers
             try
             {
                 await _unitOfWork.SaveAsync();
-                return CreatedAtAction("GetSupplyById", new { id = entity.Id }, entity.Id);
+                var createdResult = CreatedAtAction("GetSupplyById", new { id = entity.Id }, entity.Id);
+                createdResult.StatusCode = 200;
+                return createdResult;
             }
             catch (Exception e)
             {
@@ -94,6 +99,7 @@ namespace RetailSystem.Controllers
         }
 
         [HttpPut("{id}")]
+        [SwaggerResponse(typeof(SupplyDto))]
         public async Task<IActionResult> UpdateSupply([FromRoute] int id, [FromBody] SupplyDto entityDto)
         {
             if (!ModelState.IsValid)
@@ -125,10 +131,11 @@ namespace RetailSystem.Controllers
                 throw new Exception("An unexpected error occured. Could not update.");
             }
 
-            return NoContent();
+            return Ok(_mapper.Map<SupplyDto>(entity));
         }
 
         [HttpDelete("{id}")]
+        [SwaggerResponse(typeof(int))]
         public async Task<IActionResult> DeleteSupply([FromRoute] int id)
         {
             var entity = await _repository.GetByIdAsync(id);
@@ -142,7 +149,7 @@ namespace RetailSystem.Controllers
             try
             {
                 await _unitOfWork.SaveAsync();
-                return Ok();
+                return Ok(entity.Id);
             }
             catch (Exception)
             {

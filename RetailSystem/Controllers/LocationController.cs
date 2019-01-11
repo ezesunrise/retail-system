@@ -6,6 +6,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NSwag.Annotations;
 using RetailSystem.Data;
 using RetailSystem.Dtos;
 using RetailSystem.Models;
@@ -34,15 +35,21 @@ namespace RetailSystem.Controllers
             return _mapper.Map<IEnumerable<LocationListDto>>(entities);
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetLocationById([FromRoute] int id)
+        [HttpGet]
+        [SwaggerResponse(typeof(LocationDto))]
+        public async Task<IActionResult> GetLocationById([FromQuery] int? id)
         {
+            if(id == null)
+            {
+                return Ok(new LocationDto());
+            }
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var entity = await _repository.GetByIdAsync(id);
+            var entity = await _repository.GetByIdAsync(id.Value);
 
             if (entity == null)
             {
@@ -54,6 +61,7 @@ namespace RetailSystem.Controllers
         }
 
         [HttpPost]
+        [SwaggerResponse(typeof(LocationDto))]
         public async Task<IActionResult> CreateLocation([FromBody] LocationDto entityDto)
         {
             if (!ModelState.IsValid)
@@ -66,7 +74,9 @@ namespace RetailSystem.Controllers
             {
                 _repository.Add(entity);
                 await _unitOfWork.SaveAsync();
-                return CreatedAtAction("GetLocationById", new { id = entity.Id }, entity.Id);
+                var createdResult = CreatedAtAction("GetLocationById", new { id = entity.Id }, entity.Id);
+                createdResult.StatusCode = 200;
+                return createdResult;
             }
             catch (Exception e)
             {
@@ -75,6 +85,7 @@ namespace RetailSystem.Controllers
         }
 
         [HttpPut("{id}")]
+        [SwaggerResponse(typeof(LocationDto))]
         public async Task<IActionResult> UpdateLocation([FromRoute] int id, [FromBody] LocationDto entityDto)
         {
             if (!ModelState.IsValid)
@@ -106,10 +117,11 @@ namespace RetailSystem.Controllers
                 throw new Exception("An unexpected error occured. Could not update.");
             }
 
-            return NoContent();
+            return Ok(_mapper.Map<LocationDto>(entity));
         }
 
         [HttpDelete("{id}")]
+        [SwaggerResponse(typeof(int))]
         public async Task<IActionResult> DeleteLocation([FromRoute] int id)
         {
             var entity = await _repository.GetByIdAsync(id);
@@ -123,7 +135,7 @@ namespace RetailSystem.Controllers
             try
             {
                 await _unitOfWork.SaveAsync();
-                return Ok();
+                return Ok(entity.Id);
             }
             catch (Exception)
             {

@@ -43,17 +43,31 @@ namespace RetailSystem.Dtos
             }
         }
 
-        public decimal Target { get; set; }
-        public int TargetType { get; set; }
+        public decimal? Target { get; set; }
+        public int? TargetType { get; set; }
+        public IList<KeyValuePairDto> TargetTypeList
+        {
+            get
+            {
+                IList<KeyValuePairDto> list = new List<KeyValuePairDto>();
+                foreach (int value in Enum.GetValues(typeof(TargetType)))
+                {
+                    list.Add(new KeyValuePairDto { Value = value, DisplayName = Enum.GetName(typeof(TargetType), value) });
+                }
+                return list;
+            }
+        }
 
         public string Address { get; set; }
         
-        public string PhoneNumber { get; set; }
+        public string PhoneNumber1 { get; set; }
         
-        public string AlternatePhoneNumber { get; set; }
+        public string PhoneNumber2 { get; set; }
 
         public string ContactPerson { get; set; }
 
         public int BusinessId { get; set; }
+
+        public string AdditionalInfo { get; set; }
     }
 }

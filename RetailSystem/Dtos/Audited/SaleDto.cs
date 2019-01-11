@@ -6,7 +6,6 @@ namespace RetailSystem.Dtos
 {
     public class SaleDto : EntityDto
     {
-        [Required]
         public string ReferenceNumber { get; set; }
 
         public decimal Total { get {

@@ -6,6 +6,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NSwag.Annotations;
 using RetailSystem.Data;
 using RetailSystem.Dtos;
 using RetailSystem.Models;
@@ -30,7 +31,7 @@ namespace RetailSystem.Controllers
         [HttpGet]
         public async Task<IEnumerable<LocationItemListDto>> GetLocationItems(int? locationId, int? itemId)
         {
-            if(!(locationId.HasValue || itemId.HasValue))
+            if (!(locationId.HasValue || itemId.HasValue))
             {
                 return null;
             }
@@ -42,6 +43,7 @@ namespace RetailSystem.Controllers
         }
 
         [HttpGet]
+        [SwaggerResponse(typeof(LocationItemDto))]
         public async Task<IActionResult> GetLocationItemById(int locationId, int itemId)
         {
             if (!ModelState.IsValid)
@@ -60,78 +62,83 @@ namespace RetailSystem.Controllers
             return Ok(locationItemDto);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> CreateLocationItem([FromBody] LocationItemDto locationItemDto)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+        //[HttpPost]
+        //[SwaggerResponse(typeof(LocationItemDto))]
+        //public async Task<IActionResult> CreateLocationItem([FromBody] LocationItemDto locationItemDto)
+        //{
+        //    if (!ModelState.IsValid)
+        //    {
+        //        return BadRequest(ModelState);
+        //    }
 
-            var locationItem = _mapper.Map<LocationItem>(locationItemDto);
-            try
-            {
-                _repository.Add(locationItem);
-                await _unitOfWork.SaveAsync();
-                return CreatedAtAction("GetLocationItemById", new { locationId = locationItem.LocationId, itemId = locationItem.ItemId }, null);
-            }
-            catch (Exception e)
-            {
-                throw new Exception(e.Message);
-            }
-        }
+        //    var locationItem = _mapper.Map<LocationItem>(locationItemDto);
+        //    try
+        //    {
+        //        _repository.Add(locationItem);
+        //        await _unitOfWork.SaveAsync();
+        //        var createdResult = CreatedAtAction("GetLocationItemById", new { locationId = locationItem.LocationId, itemId = locationItem.ItemId }, null);
+        //        createdResult.StatusCode = 200;
+        //        return createdResult;
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        throw new Exception(e.Message);
+        //    }
+        //}
 
-        [HttpPut]
-        public async Task<IActionResult> UpdateLocationItem([FromBody] LocationItemDto locationItemDto)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-            
-            var locationItem = await _repository.GetByIdAsync(locationItemDto.LocationId, locationItemDto.ItemId);
-            if (locationItem == null)
-            {
-                return NotFound("Location Item does not exist");
-            }
+        //[HttpPut]
+        //[SwaggerResponse(typeof(LocationItemDto))]
+        //public async Task<IActionResult> UpdateLocationItem([FromBody] LocationItemDto locationItemDto)
+        //{
+        //    if (!ModelState.IsValid)
+        //    {
+        //        return BadRequest(ModelState);
+        //    }
 
-            _mapper.Map(locationItemDto, locationItem);
+        //    var locationItem = await _repository.GetByIdAsync(locationItemDto.LocationId, locationItemDto.ItemId);
+        //    if (locationItem == null)
+        //    {
+        //        return NotFound("Location Item does not exist");
+        //    }
 
-            try
-            {
-                _repository.Update(locationItem);
-                await _unitOfWork.SaveAsync();
-            }
+        //    _mapper.Map(locationItemDto, locationItem);
 
-            catch (Exception)
-            {
-                throw new Exception("An unexpected error occured. Could not update.");
-            }
+        //    try
+        //    {
+        //        _repository.Update(locationItem);
+        //        await _unitOfWork.SaveAsync();
+        //    }
 
-            return NoContent();
-        }
+        //    catch (Exception)
+        //    {
+        //        throw new Exception("An unexpected error occured. Could not update.");
+        //    }
 
-        [HttpDelete]
-        public async Task<IActionResult> DeleteLocationItem(int locationId, int itemId)
-        {
-            var locationItem = await _repository.GetByIdAsync(locationId, itemId);
-            if (locationItem == null)
-            {
-                return NotFound("The Location Item to be deleted does not exist");
-            }
+        //    return Ok(_mapper.Map<LocationItemDto>(locationItem));
+        //}
 
-            _repository.Remove(locationItem);
+        //[HttpDelete]
+        //[SwaggerResponse(typeof(int))]
+        //public async Task<IActionResult> DeleteLocationItem(int locationId, int itemId)
+        //{
+        //    var locationItem = await _repository.GetByIdAsync(locationId, itemId);
+        //    if (locationItem == null)
+        //    {
+        //        return NotFound("The Location Item to be deleted does not exist");
+        //    }
 
-            try
-            {
-                await _unitOfWork.SaveAsync();
-                return Ok();
-            }
-            catch (Exception)
-            {
-                throw new Exception("An unexpected error occured. Could not delete.");
-            }
-        }
+        //    _repository.Remove(locationItem);
+
+        //    try
+        //    {
+        //        await _unitOfWork.SaveAsync();
+        //        return Ok(new { locationItem.LocationId, locationItem.ItemId });
+        //    }
+        //    catch (Exception)
+        //    {
+        //        throw new Exception("An unexpected error occured. Could not delete.");
+        //    }
+        //}
 
     }
 }

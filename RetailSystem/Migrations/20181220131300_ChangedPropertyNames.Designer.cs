@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RetailSystem.Data;
 
 namespace RetailSystem.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20181220131300_ChangedPropertyNames")]
+    partial class ChangedPropertyNames
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -103,7 +105,6 @@ namespace RetailSystem.Migrations
                     b.HasIndex("BusinessId");
 
                     b.HasIndex("Name")
-                        .IsUnique()
                         .HasName("Category_Name");
 
                     b.ToTable("Categories");
@@ -171,7 +172,6 @@ namespace RetailSystem.Migrations
                     b.HasIndex("CreatorId");
 
                     b.HasIndex("InvoiceNumber")
-                        .IsUnique()
                         .HasName("Invoice_Number");
 
                     b.HasIndex("LocationId");
@@ -301,7 +301,6 @@ namespace RetailSystem.Migrations
                     b.HasIndex("BusinessId");
 
                     b.HasIndex("Name")
-                        .IsUnique()
                         .HasName("Location_Name");
 
                     b.ToTable("Locations");
@@ -357,7 +356,6 @@ namespace RetailSystem.Migrations
                     b.HasIndex("BusinessId");
 
                     b.HasIndex("Name")
-                        .IsUnique()
                         .HasName("Manufacturer_Name");
 
                     b.ToTable("Manufacturers");
@@ -401,9 +399,7 @@ namespace RetailSystem.Migrations
                     b.HasIndex("LocationId");
 
                     b.HasIndex("OrderNumber")
-                        .IsUnique()
-                        .HasName("PurchaseOrder_Number")
-                        .HasFilter("[OrderNumber] IS NOT NULL");
+                        .HasName("PurchaseOrder_Number");
 
                     b.HasIndex("UpdaterId");
 
@@ -458,7 +454,6 @@ namespace RetailSystem.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ReceiptNumber")
-                        .IsUnique()
                         .HasName("Receipt_Number");
 
                     b.HasIndex("SaleId");
@@ -527,7 +522,6 @@ namespace RetailSystem.Migrations
                     b.HasIndex("LocationId");
 
                     b.HasIndex("ReferenceNumber")
-                        .IsUnique()
                         .HasName("Sale_ReferenceNumber");
 
                     b.HasIndex("UpdaterId");
@@ -573,10 +567,6 @@ namespace RetailSystem.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.HasIndex("Name", "CategoryId")
-                        .IsUnique()
-                        .HasName("SubCategory_Name_CategoryId");
-
                     b.ToTable("SubCategories");
                 });
 
@@ -616,11 +606,9 @@ namespace RetailSystem.Migrations
                     b.HasIndex("BusinessId");
 
                     b.HasIndex("Name")
-                        .IsUnique()
                         .HasName("Supplier_Name");
 
                     b.HasIndex("SupplierNumber")
-                        .IsUnique()
                         .HasName("Supplier_Number");
 
                     b.ToTable("Suppliers");
@@ -660,9 +648,7 @@ namespace RetailSystem.Migrations
                     b.HasIndex("LocationId");
 
                     b.HasIndex("ReferenceNumber")
-                        .IsUnique()
-                        .HasName("Supply_ReferenceNumber")
-                        .HasFilter("[ReferenceNumber] IS NOT NULL");
+                        .HasName("Supply_ReferenceNumber");
 
                     b.HasIndex("UpdaterId");
 
@@ -728,7 +714,6 @@ namespace RetailSystem.Migrations
                     b.HasIndex("SourceLocationId");
 
                     b.HasIndex("TransferNumber")
-                        .IsUnique()
                         .HasName("Transfer_Number");
 
                     b.HasIndex("UpdaterId");

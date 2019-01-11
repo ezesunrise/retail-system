@@ -7,20 +7,20 @@ namespace RetailSystem.Dtos
     public class SupplierListDto : EntityDto
     {
         [Required]
-        public string SupplierCode { get; set; }
+        public string SupplierNumber { get; set; }
 
         [Required]
         [StringLength(128)]
         public string Name { get; set; }
         
-        public string EmailAddress { get; set; }
+        public string Email { get; set; }
 
         [StringLength(128)]
         public string ContactPerson { get; set; }
         
-        public string PhoneNumber { get; set; }
+        public string PhoneNumber1 { get; set; }
         
-        public string AlternatePhoneNumber { get; set; }
+        public string PhoneNumber2 { get; set; }
 
         public string Address { get; set; }
 

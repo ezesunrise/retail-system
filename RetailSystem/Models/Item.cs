@@ -53,6 +53,8 @@ namespace RetailSystem.Models
 
         public int? SupplierId { get; set; }
         public virtual Supplier Supplier { get; set; }
+        
+        public string AdditionalInfo { get; set; }
 
         public virtual ICollection<LocationItem> LocationItems { get; set; }
         public virtual ICollection<SaleItem> SaleItems { get; set; }

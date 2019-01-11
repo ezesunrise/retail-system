@@ -16,9 +16,9 @@ namespace RetailSystem.Dtos
         [StringLength(128)]
         public string ContactPerson { get; set; } 
         
-        public string PhoneNumber { get; set; }
+        public string PhoneNumber1 { get; set; }
         
-        public string AlternatePhoneNumber { get; set; }
+        public string PhoneNumber2 { get; set; }
 
         public string Address { get; set; }
 

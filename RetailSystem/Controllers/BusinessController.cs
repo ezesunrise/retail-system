@@ -6,6 +6,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NSwag.Annotations;
 using RetailSystem.Data;
 using RetailSystem.Dtos;
 using RetailSystem.Models;
@@ -35,6 +36,7 @@ namespace RetailSystem.Controllers
         }
 
         [HttpGet("{id}")]
+        [SwaggerResponse(typeof(BusinessDto))]
         public async Task<IActionResult> GetBusinessById([FromRoute] int id)
         {
             if (!ModelState.IsValid)
@@ -54,6 +56,7 @@ namespace RetailSystem.Controllers
         }
 
         [HttpPost]
+        [SwaggerResponse(typeof(BusinessDto))]
         public async Task<IActionResult> CreateBusiness([FromBody] BusinessDto entityDto)
         {
             if (!ModelState.IsValid)
@@ -66,7 +69,9 @@ namespace RetailSystem.Controllers
             {
                 _repository.Add(entity);
                 await _unitOfWork.SaveAsync();
-                return CreatedAtAction("GetBusinessById", new { id = entity.Id }, entity.Id);
+                var createdResult = CreatedAtAction("GetBusinessById", new { id = entity.Id }, entity.Id);
+                createdResult.StatusCode = 200;
+                return createdResult;
             }
             catch (Exception e)
             {
@@ -75,6 +80,7 @@ namespace RetailSystem.Controllers
         }
 
         [HttpPut("{id}")]
+        [SwaggerResponse(typeof(BusinessDto))]
         public async Task<IActionResult> UpdateBusiness([FromRoute] int id, [FromBody] BusinessDto entityDto)
         {
             if (!ModelState.IsValid)
@@ -106,10 +112,11 @@ namespace RetailSystem.Controllers
                 throw new Exception("An unexpected error occured. Could not update.");
             }
 
-            return NoContent();
+            return Ok(_mapper.Map<BusinessDto>(entity));
         }
         
         [HttpDelete("{id}")]
+        [SwaggerResponse(typeof(int))]
         public async Task<IActionResult> DeleteBusiness([FromRoute] int id)
         {
             var entity = await _repository.GetByIdAsync(id);
@@ -123,7 +130,7 @@ namespace RetailSystem.Controllers
             try
             {
                 await _unitOfWork.SaveAsync();
-                return Ok();
+                return Ok(entity.Id);
             }
             catch (Exception)
             {

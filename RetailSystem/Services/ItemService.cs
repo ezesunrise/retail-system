@@ -1,36 +1,38 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using RetailSystem.Data;
 using RetailSystem.Models;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace RetailSystem.Data
+namespace RetailSystem.Services
 {
-    public class ItemRepository : IRepository<Item>
+    public class ItemService
     {
         private ApplicationDbContext _context { get; set; }
 
-        public ItemRepository(ApplicationDbContext context)
+        public ItemService(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        public async Task<IEnumerable<Item>> GetAsync(Expression<Func<Item, bool>> predicate)
+        public async Task<IEnumerable<Item>> GetItems(Expression<Func<Item, bool>> predicate)
         {
-            return await _context.Items.Include(i => i.LocationItems).Where(predicate).ToListAsync();
+            return await _context.Items.Where(predicate).ToListAsync();
         }
 
-        public async Task<IEnumerable<Item>> GetAllAsync()
+        public async Task<IEnumerable<Item>> GetAllItems()
         {
             return await _context.Items.ToListAsync();
         }
 
         public async Task<Item> GetByIdAsync(int id)
         {
-            var entity = await _context.Items.FindAsync(id);
+            var entity = await _context.Items
+                .Include(i => i.LocationItems)
+                .SingleOrDefaultAsync(s => s.Id == id);
             return entity;
         }
 

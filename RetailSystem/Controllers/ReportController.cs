@@ -73,7 +73,9 @@ namespace RetailSystem.Controllers
             {
                 _repository.Add(entity);
                 await _unitOfWork.SaveAsync();
-                return CreatedAtAction("GetReportGroupById", new { id = entity.Id }, entity.Id);
+                var createdResult = CreatedAtAction("GetReportGroupById", new { id = entity.Id }, entity.Id);
+                createdResult.StatusCode = 200;
+                return createdResult;
             }
             catch (Exception e)
             {
@@ -130,7 +132,7 @@ namespace RetailSystem.Controllers
             try
             {
                 await _unitOfWork.SaveAsync();
-                return Ok();
+                return Ok(entity.Id);
             }
             catch (Exception)
             {

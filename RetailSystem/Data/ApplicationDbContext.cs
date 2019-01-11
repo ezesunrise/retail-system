@@ -43,7 +43,10 @@ namespace RetailSystem.Data
         {
             //Category
             builder.Entity<Category>()
-                .HasIndex(s => s.Name).HasName("Category_Name");
+                .HasIndex(c => c.Name).HasName("Category_Name").IsUnique();
+            //SubCategory
+            builder.Entity<SubCategory>()
+                .HasIndex(s => new { s.Name, s.CategoryId }).HasName("SubCategory_Name_CategoryId").IsUnique();
             //Item
             builder.Entity<Item>()
                 .HasAlternateKey(i => i.Code).HasName("Item_Code");
@@ -64,10 +67,10 @@ namespace RetailSystem.Data
                 .HasColumnType("decimal(10,2)");
             //Sale
             builder.Entity<Sale>()
-                .HasIndex(s => s.ReferenceNumber).HasName("Sale_ReferenceNumber");
+                .HasIndex(s => s.ReferenceNumber).HasName("Sale_ReferenceNumber").IsUnique();
             //Supply
             builder.Entity<Supply>()
-                .HasIndex(s => s.ReferenceNumber).HasName("Supply_ReferenceNumber");
+                .HasIndex(s => s.ReferenceNumber).HasName("Supply_ReferenceNumber").IsUnique();
             //LocationItem
             builder.Entity<LocationItem>()
                 .HasKey(l => new { l.LocationId, l.ItemId })
@@ -79,7 +82,7 @@ namespace RetailSystem.Data
             builder.Entity<Location>()
                 .HasAlternateKey(l => l.Code).HasName("Location_Code");
             builder.Entity<Location>()
-                .HasIndex(l => l.Name).HasName("Location_Name");
+                .HasIndex(l => l.Name).HasName("Location_Name").IsUnique();
             builder.Entity<Location>()
                 .Property(l => l.Target)
                 .HasColumnType("decimal(12,2)");
@@ -119,24 +122,24 @@ namespace RetailSystem.Data
                 .HasName("ReportItem_Id");
             //Supplier
             builder.Entity<Supplier>()
-                .HasIndex(s => s.SupplierCode).HasName("Supplier_Code");
+                .HasIndex(s => s.SupplierNumber).HasName("Supplier_Number").IsUnique();
             builder.Entity<Supplier>()
-                .HasIndex(s => s.Name).HasName("Supplier_Name");
+                .HasIndex(s => s.Name).HasName("Supplier_Name").IsUnique();
             //Manufacturer
             builder.Entity<Manufacturer>()
-                .HasIndex(s => s.Name).HasName("Manufacturer_Name");
+                .HasIndex(s => s.Name).HasName("Manufacturer_Name").IsUnique();
             //PurchaseOrder
             builder.Entity<PurchaseOrder>()
-                .HasIndex(p => p.OrderNumber).HasName("PurchaseOrder_Number");
+                .HasIndex(p => p.OrderNumber).HasName("PurchaseOrder_Number").IsUnique();
             //Transfer
             builder.Entity<Transfer>()
-                .HasIndex(t => t.TransferNumber).HasName("Transfer_Number");
+                .HasIndex(t => t.TransferNumber).HasName("Transfer_Number").IsUnique();
             //Invoice
             builder.Entity<Invoice>()
-                .HasIndex(i => i.InvoiceNumber).HasName("Invoice_Number");
+                .HasIndex(i => i.InvoiceNumber).HasName("Invoice_Number").IsUnique();
             //Receipt
             builder.Entity<Receipt>()
-                .HasIndex(r => r.ReceiptNumber).HasName("Receipt_Number");
+                .HasIndex(r => r.ReceiptNumber).HasName("Receipt_Number").IsUnique();
             builder.Entity<Receipt>()
                 .Property(r => r.CashPaid)
                 .HasColumnType("decimal(10,2)");

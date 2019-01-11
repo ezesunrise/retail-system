@@ -6,6 +6,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NSwag.Annotations;
 using RetailSystem.Data;
 using RetailSystem.Dtos;
 using RetailSystem.Models;
@@ -17,18 +18,77 @@ namespace RetailSystem.Controllers
     public class ItemController : Controller
     {
         private readonly IRepository<Item> _repository;
+        private readonly IRepository<Category> _categoryRepository;
+        private readonly IRepository<Supplier> _supplierRepository;
+        private readonly IRepository<Manufacturer> _manufacturerRepository;
+        private readonly IRepository<Unit> _unitRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public ItemController(IRepository<Item> repository, IUnitOfWork unitOfWork, IMapper mapper)
+        public ItemController(
+            IRepository<Item> repository,
+            IRepository<Category> categoryRepository,
+            IRepository<Supplier> supplierRepository,
+            IRepository<Manufacturer> manufacturerRepository,
+            IRepository<Unit> unitRepository,
+            IUnitOfWork unitOfWork,
+            IMapper mapper)
         {
             _repository = repository;
+            _categoryRepository = categoryRepository;
+            _supplierRepository = supplierRepository;
+            _manufacturerRepository = manufacturerRepository;
+            _unitRepository = unitRepository;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
         [HttpGet]
-        public async Task<IEnumerable<ItemListDto>> GetAllItems(int businessId)
+        public async Task<IEnumerable<KeyValuePairDto>[]> GetListItems(int bussinessId)
+        {
+            List<KeyValuePairDto>[] lists = new List<KeyValuePairDto>[3];
+
+            var categories = await _categoryRepository
+                .GetAsync(c => c.BusinessId == bussinessId);
+            var categoryKeyValPairs = categories.Select(i => new KeyValuePairDto
+            {
+                DisplayName = i.Name,
+                Value = i.Id
+            });
+
+            var suppliers = await _supplierRepository
+                .GetAsync(c => c.BusinessId == bussinessId);
+            var supplierKeyValPairs = suppliers.Select(i => new KeyValuePairDto
+            {
+                DisplayName = i.Name,
+                Value = i.Id
+            });
+
+            var manufacturers = await _manufacturerRepository
+                .GetAsync(c => c.BusinessId == bussinessId);
+            var manufacturerKeyValPairs = categories.Select(i => new KeyValuePairDto
+            {
+                DisplayName = i.Name,
+                Value = i.Id
+            });
+
+            var units = await _unitRepository
+                .GetAsync(c => c.BusinessId == bussinessId);
+            var unitKeyValPairs = categories.Select(i => new KeyValuePairDto
+            {
+                DisplayName = i.Name,
+                Value = i.Id
+            });
+
+            lists.Append(categoryKeyValPairs);
+            lists.Append(supplierKeyValPairs);
+            lists.Append(manufacturerKeyValPairs);
+            lists.Append(unitKeyValPairs);
+            return lists;
+        }
+
+        [HttpGet]
+        public async Task<IEnumerable<ItemListDto>> GetAllItems(int businessId, string filter = "", string sorting = "", int maxResultCount = 100, int skipCount = 0)
         {
             var entities = await _repository.GetAsync(i => i.Category.BusinessId == businessId);
             return _mapper.Map<IEnumerable<ItemListDto>>(entities);
@@ -42,6 +102,7 @@ namespace RetailSystem.Controllers
         }
 
         [HttpGet("{id}")]
+        [SwaggerResponse(typeof(ItemDto))]
         public async Task<IActionResult> GetItemById([FromRoute] int id)
         {
             if (!ModelState.IsValid)
@@ -61,6 +122,7 @@ namespace RetailSystem.Controllers
         }
 
         [HttpPost]
+        [SwaggerResponse(typeof(ItemDto))]
         public async Task<IActionResult> CreateItem([FromBody] ItemDto entityDto)
         {
             if (!ModelState.IsValid)
@@ -73,7 +135,9 @@ namespace RetailSystem.Controllers
             {
                 _repository.Add(entity);
                 await _unitOfWork.SaveAsync();
-                return CreatedAtAction("GetItemById", new { id = entity.Id }, entity.Id);
+                var createdResult = CreatedAtAction("GetItemById", new { id = entity.Id }, entity.Id);
+                createdResult.StatusCode = 200;
+                return createdResult;
             }
             catch (Exception e)
             {
@@ -82,6 +146,7 @@ namespace RetailSystem.Controllers
         }
 
         [HttpPut("{id}")]
+        [SwaggerResponse(typeof(ItemDto))]
         public async Task<IActionResult> UpdateItem([FromRoute] int id, [FromBody] ItemDto entityDto)
         {
             if (!ModelState.IsValid)
@@ -113,10 +178,11 @@ namespace RetailSystem.Controllers
                 throw new Exception("An unexpected error occured. Could not update.");
             }
 
-            return NoContent();
+            return Ok(_mapper.Map<ItemDto>(entity));
         }
 
         [HttpDelete("{id}")]
+        [SwaggerResponse(typeof(int))]
         public async Task<IActionResult> DeleteItem([FromRoute] int id)
         {
             var entity = await _repository.GetByIdAsync(id);
@@ -130,7 +196,7 @@ namespace RetailSystem.Controllers
             try
             {
                 await _unitOfWork.SaveAsync();
-                return Ok();
+                return Ok(entity.Id);
             }
             catch (Exception)
             {

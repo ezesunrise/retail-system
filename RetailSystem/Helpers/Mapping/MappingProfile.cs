@@ -39,7 +39,8 @@ namespace RetailSystem.Mapping
             CreateMap<ReportGroupDto, ReportGroup>();
 
             CreateMap<Sale, SaleDto>();
-            CreateMap<SaleDto, Sale>();
+            CreateMap<SaleDto, Sale>()
+                .ForMember(s => s.ReferenceNumber, opt => opt.Ignore());
 
             CreateMap<SubCategory, SubCategoryDto>();
             CreateMap<SubCategoryDto, SubCategory>();
@@ -64,7 +65,8 @@ namespace RetailSystem.Mapping
             CreateMap<SupplyItemDto, SupplyItem>()
                 .ForMember(s => s.SupplyId, ops => ops.Ignore());
 
-            CreateMap<SaleItem, SaleItemDto>();
+            CreateMap<SaleItem, SaleItemDto>()
+                .ForMember(s => s.ItemDescription, opt => opt.MapFrom(s => s.Item.Description));
             CreateMap<SaleItemDto, SaleItem>()
                 .ForMember(s => s.SaleId, ops => ops.Ignore());
 

@@ -13,21 +13,22 @@ namespace RetailSystem.Models
         public string Name { get; set; }
 
         [DataType(DataType.EmailAddress)]
-        public string EmailAddress { get; set; }
+        public string Email { get; set; }
 
         [StringLength(128)]
         public string ContactPerson { get; set; } 
 
         [DataType(DataType.PhoneNumber)]
-        public string PhoneNumber { get; set; }
+        public string PhoneNumber1 { get; set; }
 
         [DataType(DataType.PhoneNumber)]
-        public string AlternatePhoneNumber { get; set; }
+        public string PhoneNumber2 { get; set; }
 
         public string Address { get; set; }
 
         public int BusinessId { get; set; }
         public Business Business { get; set; }
 
+        public string AdditionalInfo { get; set; }
     }
 }

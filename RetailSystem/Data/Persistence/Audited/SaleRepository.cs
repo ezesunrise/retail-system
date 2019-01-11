@@ -20,7 +20,10 @@ namespace RetailSystem.Data
 
         public async Task<IEnumerable<Sale>> GetAsync(Expression<Func<Sale, bool>> predicate)
         {
-            return await _context.Sales.Where(predicate).ToListAsync();
+            return await _context.Sales
+                .Where(predicate)
+                .Include(s => s.SaleItems)
+                .ToListAsync();
         }
 
         public async Task<IEnumerable<Sale>> GetAllAsync()
@@ -33,6 +36,8 @@ namespace RetailSystem.Data
             var entity = await _context.Sales
                 .Include(s => s.SaleItems)
                 .SingleOrDefaultAsync(s => s.Id == id);
+            //var saleItems = await _context.SaleItems.Where(s => s.SaleId == entity.Id).Include(s => s.Item).ToListAsync();
+
             return entity;
         }
 

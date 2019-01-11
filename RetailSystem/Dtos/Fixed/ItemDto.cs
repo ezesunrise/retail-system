@@ -37,6 +37,8 @@ namespace RetailSystem.Dtos
         public int? ManufacturerId { get; set; }
 
         public int? SupplierId { get; set; }
-        
+
+        public string AdditionalInfo { get; set; }
+
     }
 }

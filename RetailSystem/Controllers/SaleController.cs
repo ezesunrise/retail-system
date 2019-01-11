@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,6 +7,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NSwag.Annotations;
 using RetailSystem.Data;
 using RetailSystem.Dtos;
 using RetailSystem.Models;
@@ -18,15 +20,38 @@ namespace RetailSystem.Controllers
     {
         private readonly IRepository<Sale> _repository;
         private readonly ICompositeRepository<LocationItem> _locationItemRepository;
+        private readonly IRepository<Item> _itemRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public SaleController(IRepository<Sale> repository, ICompositeRepository<LocationItem> locationItemRepository, IUnitOfWork unitOfWork, IMapper mapper)
+        public SaleController(
+            IRepository<Sale> repository,
+            ICompositeRepository<LocationItem> locationItemRepository,
+            IRepository<Item> itemRepository,
+            IUnitOfWork unitOfWork,
+            IMapper mapper)
         {
             _repository = repository;
             _locationItemRepository = locationItemRepository;
+            _itemRepository = itemRepository;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+        }
+
+        [HttpGet]
+        public async Task<IEnumerable<KeyValuePairDto[]>> GetListItems(int locationId)
+        {
+            IEnumerable<KeyValuePairDto[]> lists = new List<KeyValuePairDto[]>();
+            var items = await _itemRepository
+                .GetAsync(i => i.LocationItems.SingleOrDefault(l => l.LocationId == locationId).LocationId == locationId);
+
+            var itemKeyValPairs = items.Select(i => new KeyValuePairDto {
+                DisplayName = i.Description,
+                Value = i.Id
+            }).ToArray();
+
+            var result = lists.Append(itemKeyValPairs);
+            return result;
         }
 
         [HttpGet]
@@ -39,6 +64,7 @@ namespace RetailSystem.Controllers
         }
 
         [HttpGet("{id}")]
+        [SwaggerResponse(typeof(SaleDto))]
         public async Task<IActionResult> GetSaleById([FromRoute] int id)
         {
             var entity = await _repository.GetByIdAsync(id);
@@ -53,6 +79,7 @@ namespace RetailSystem.Controllers
         }
 
         [HttpPost]
+        [SwaggerResponse(typeof(SaleDto))]
         public async Task<IActionResult> CreateSale([FromBody] SaleDto entityDto)
         {
             if (!ModelState.IsValid)
@@ -85,7 +112,9 @@ namespace RetailSystem.Controllers
             try
             {
                 await _unitOfWork.SaveAsync();
-                return CreatedAtAction("GetSaleById", new { id = entity.Id }, entity.Id);
+                var createdResult = CreatedAtAction("GetSaleById", new { id = entity.Id }, entity.Id);
+                createdResult.StatusCode = 200;
+                return createdResult;
             }
             catch (Exception e)
             {
@@ -94,6 +123,7 @@ namespace RetailSystem.Controllers
         }
 
         [HttpPut("{id}")]
+        [SwaggerResponse(typeof(SaleDto))]
         public async Task<IActionResult> UpdateSale([FromRoute] int id, [FromBody] SaleDto entityDto)
         {
             if (!ModelState.IsValid)
@@ -125,10 +155,11 @@ namespace RetailSystem.Controllers
                 throw new Exception("An unexpected error occured. Could not update.");
             }
 
-            return NoContent();
+            return Ok(_mapper.Map<SaleDto>(entity));
         }
 
         [HttpDelete("{id}")]
+        [SwaggerResponse(typeof(int))]
         public async Task<IActionResult> DeleteSale([FromRoute] int id)
         {
             var entity = await _repository.GetByIdAsync(id);
@@ -142,7 +173,7 @@ namespace RetailSystem.Controllers
             try
             {
                 await _unitOfWork.SaveAsync();
-                return Ok();
+                return Ok(entity.Id);
             }
             catch (Exception)
             {

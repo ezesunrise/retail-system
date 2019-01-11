@@ -3,15 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NSwag.Annotations;
 using RetailSystem.Data;
 using RetailSystem.Dtos;
 using RetailSystem.Models;
 
 namespace RetailSystem.Controllers
 {
+    [AllowAnonymous]
     [Produces("application/json")]
     [Route("api/[controller]/[action]")]
     public class SupplierController : Controller
@@ -28,6 +31,7 @@ namespace RetailSystem.Controllers
         }
 
         [HttpGet]
+        [SwaggerResponse(typeof(IEnumerable<SupplierListDto>))]
         public async Task<IEnumerable<SupplierListDto>> GetAllSuppliers()
         {
             var entities = await _repository.GetAllAsync();
@@ -35,13 +39,15 @@ namespace RetailSystem.Controllers
         }
 
         [HttpGet]
-        public async Task<IEnumerable<SupplierListDto>> GetSuppliers(int businessId)
+        [SwaggerResponse(typeof(IEnumerable<SupplierListDto>))]
+        public async Task<IActionResult> GetSuppliers(int businessId)
         {
             var entities = await _repository.GetAsync(s => s.BusinessId == businessId);
-            return _mapper.Map<IEnumerable<SupplierListDto>>(entities);
+            return Ok(_mapper.Map<IEnumerable<SupplierListDto>>(entities));
         }
 
         [HttpGet("{id}")]
+        [SwaggerResponse(typeof(SupplierDto))]
         public async Task<IActionResult> GetSupplierById([FromRoute] int id)
         {
             if (!ModelState.IsValid)
@@ -61,6 +67,7 @@ namespace RetailSystem.Controllers
         }
 
         [HttpPost]
+        [SwaggerResponse(typeof(SupplierDto))]
         public async Task<IActionResult> CreateSupplier([FromBody] SupplierDto entityDto)
         {
             if (!ModelState.IsValid)
@@ -73,7 +80,9 @@ namespace RetailSystem.Controllers
             {
                 _repository.Add(entity);
                 await _unitOfWork.SaveAsync();
-                return CreatedAtAction("GetSupplierById", new { id = entity.Id }, entity.Id);
+                var createdResult = CreatedAtAction("GetSupplierById", new { id = entity.Id }, _mapper.Map<SupplierDto>(entity));
+                createdResult.StatusCode = 200;
+                return createdResult;
             }
             catch (Exception e)
             {
@@ -82,6 +91,7 @@ namespace RetailSystem.Controllers
         }
 
         [HttpPut("{id}")]
+        [SwaggerResponse(typeof(SupplierDto))]
         public async Task<IActionResult> UpdateSupplier([FromRoute] int id, [FromBody] SupplierDto entityDto)
         {
             if (!ModelState.IsValid)
@@ -113,10 +123,11 @@ namespace RetailSystem.Controllers
                 throw new Exception("An unexpected error occured. Could not update.");
             }
 
-            return NoContent();
+            return Ok(_mapper.Map<SupplierDto>(entity));
         }
 
         [HttpDelete("{id}")]
+        [SwaggerResponse(typeof(int))]
         public async Task<IActionResult> DeleteSupplier([FromRoute] int id)
         {
             var entity = await _repository.GetByIdAsync(id);
@@ -130,7 +141,7 @@ namespace RetailSystem.Controllers
             try
             {
                 await _unitOfWork.SaveAsync();
-                return Ok();
+                return Ok(entity.Id);
             }
             catch (Exception)
             {

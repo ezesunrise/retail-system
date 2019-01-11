@@ -6,13 +6,20 @@ namespace RetailSystem.Dtos
 {
     public class SaleListDto : EntityDto
     {
-        [Required]
         public string ReferenceNumber { get; set; }
 
-        [StringLength(1024)]
-        public string Description { get; set; }
-
-        public decimal Total { get; set; }
+        public decimal Total
+        {
+            get
+            {
+                var total = 0M;
+                foreach (var item in this.SaleItems)
+                {
+                    total += item.ItemTotal;
+                }
+                return total;
+            }
+        }
 
         [StringLength(1024)]
         public string Note { get; set; }

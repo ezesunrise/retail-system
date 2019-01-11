@@ -8,6 +8,7 @@ namespace RetailSystem.Models
     {
         public Sale() : base()
         {
+            ReferenceNumber = DateTime.Now.ToFileTime().ToString();
             SaleItems = new HashSet<SaleItem>();
         }
 
