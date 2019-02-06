@@ -26,20 +26,7 @@ namespace DataCapture.Controllers
             _unitOfWork = unitOfWwork;
             _mapper = mapper;
         }
-
-        [AllowAnonymous]
-        [SwaggerResponse(typeof(string))]
-        [HttpPost]
-        public IActionResult Authenticate(string userName, string password )
-        {
-            var user = _userService.Authenticate(userName, password);
-
-            if (user == null)
-                return BadRequest(new { message = "Username or password is incorrect" });
-
-            return Ok(user.Token);
-        }
-
+        
         // POST: api/Users/CreateUser
         [SwaggerResponse(typeof(int))]
         [HttpPost]

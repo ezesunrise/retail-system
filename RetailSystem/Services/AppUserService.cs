@@ -31,42 +31,6 @@ namespace RetailSystem.Services
             _mapper = mapper;
         }
         
-        public AppUser Authenticate(string userName, string password)
-        {
-            if (string.IsNullOrEmpty(userName) || string.IsNullOrWhiteSpace(password))
-            {
-                return null;
-            }
-            
-            var user = _context.AppUsers.SingleOrDefault(u => u.UserName == userName);
-            if (user == null)
-            {
-                return null;
-            }
-            //check password validity
-            if (!VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt)) {
-                return null;
-            }
-
-            // authentication successful so generate jwt token
-            var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_appSettings.Secret));
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new Claim[]
-                {
-                    new Claim(ClaimTypes.Name, user.Id.ToString()),
-                    new Claim(ClaimTypes.Role, user.Role)
-                }),
-                Expires = DateTime.UtcNow.AddDays(7),
-                SigningCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature)
-            };
-
-            var tokenHandler = new JwtSecurityTokenHandler();
-            user.Token = tokenHandler.CreateEncodedJwt(tokenDescriptor);
-            
-            return user;
-        }
-
         public AppUser Create(RegisterDto data)
         {
             string hash;
@@ -121,27 +85,6 @@ namespace RetailSystem.Services
             {
                 passwordSalt = Convert.ToBase64String(hmac.Key);
                 passwordHash = Convert.ToBase64String(hmac.ComputeHash(Encoding.ASCII.GetBytes(password)));
-            }
-        }
-
-        private static bool VerifyPasswordHash(string password, string userHashString, string userSaltString)
-        {
-            var userHash = Convert.FromBase64String(userHashString);
-            var userSalt = Convert.FromBase64String(userSaltString);
-
-            if (password == null) throw new ArgumentNullException("password");
-            if (string.IsNullOrWhiteSpace(password)) throw new ArgumentException("Value cannot be empty or whitespace");
-            if (userHash.Length != 64) throw new ArgumentException("Invalid length of password hash (64 bytes expected)", "passwordHash");
-            if (userSalt.Length != 128) throw new ArgumentException("Invalid length of password hash (128 bytes expected)", "passwordSalt");
-
-            using (var hmac = new System.Security.Cryptography.HMACSHA512(userSalt))
-            {
-                var computedHash = hmac.ComputeHash(Encoding.ASCII.GetBytes(password));
-                for (int i = 0; i < computedHash.Length; i++)
-                {
-                    if (computedHash[i] != userHash[i]) return false;
-                }
-                return true;
             }
         }
     }

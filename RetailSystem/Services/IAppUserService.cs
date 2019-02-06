@@ -9,7 +9,6 @@ namespace RetailSystem.Services
 {
     public interface IAppUserService
     {
-        AppUser Authenticate(string userName, string password);
         Task<IEnumerable<AppUser>> GetAllAsync();
         Task<AppUser> GetByIdAsync(int id);
         AppUser Create(RegisterDto user);
