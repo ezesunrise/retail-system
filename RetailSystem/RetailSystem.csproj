@@ -23,6 +23,10 @@
     <Compile Remove="Migrations\20181218094634_AddedBackOrder.Designer.cs" />
     <Compile Remove="Migrations\20181218100352_AddedBackOrder.cs" />
     <Compile Remove="Migrations\20181218100352_AddedBackOrder.Designer.cs" />
+    <Compile Remove="Migrations\20190205083546_UpdatedAppUser.cs" />
+    <Compile Remove="Migrations\20190205083546_UpdatedAppUser.Designer.cs" />
+    <Compile Remove="Migrations\20190205083904_UpdatedAppUser.cs" />
+    <Compile Remove="Migrations\20190205083904_UpdatedAppUser.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

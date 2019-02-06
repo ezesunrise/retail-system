@@ -1,182 +1,135 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
+using NSwag.Annotations;
 using RetailSystem.Data;
-using RetailSystem.Models;
+using RetailSystem.Dtos;
+using RetailSystem.Services;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace DataCapture.Controllers
 {
     [Authorize(Roles = "Admin")]
+    [Route("api/[controller]/[action]")]
     public class AppUserController : Controller
     {
-        private ApplicationDbContext _context;
+        private IAppUserService _userService;
 
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-
-        UserStore<AppUser> _userStore;
-        UserManager<AppUser> _manager;
-        public AppUserController(ApplicationDbContext context, IMapper mapper)
+        
+        public AppUserController(IAppUserService userService, IUnitOfWork unitOfWwork, IMapper mapper)
         {
-            _context = context;
-            _userStore = new UserStore<AppUser>(_context);
-            //_manager = new UserManager<AppUser>(_userStore);
+            _userService = userService;
+            _unitOfWork = unitOfWwork;
             _mapper = mapper;
         }
 
-        //// POST: api/Users/CreateUser
-        //public async Task<IActionResult> CreateUser(RegisterDto model)
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        return BadRequest(ModelState);
-        //    }
+        [AllowAnonymous]
+        [SwaggerResponse(typeof(string))]
+        [HttpPost]
+        public IActionResult Authenticate(string userName, string password )
+        {
+            var user = _userService.Authenticate(userName, password);
 
-        //    var user = new IdentityUser() { UserName = model.Username, Email = model.Email, Name = model.FullName, PhoneNumber = model.PhoneNumber };
-        //    _manager.PasswordValidator = new PasswordValidator
-        //    {
-        //        RequiredLength = 6
-        //    };
-        //    _userStore.CreateAsync
+            if (user == null)
+                return BadRequest(new { message = "Username or password is incorrect" });
 
-        //    IdentityResult result = _manager.Create(user, model.Password);
-        //    if (model.Roles != null && model.Roles.Length > 0)
-        //    {
-        //        await _manager.AddToRolesAsync(user.Id, model.Roles);
-        //    }
-        //    else
-        //    {
-        //        await _manager.AddToRoleAsync(user.Id, "Registerer");
-        //    };
+            return Ok(user.Token);
+        }
 
-        //    return Created("DefaultApi", new { user.Id });
-        //}
+        // POST: api/Users/CreateUser
+        [SwaggerResponse(typeof(int))]
+        [HttpPost]
+        public async Task<IActionResult> CreateUser([FromBody] RegisterDto data)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
-        //// GET: api/Users
-        //public async Task<IList<UserListDto>> GetUsers(string filter = "", string sorting = "", int maxResultCount = 50, int skipCount = 0)
-        //{
-        //    IQueryable<IdentityUser> usersInDb;
-        //    switch (sorting)
-        //    {
-        //        case "fullName":
-        //            usersInDb = db.Users
-        //                .Where(u => u.FullName.Contains(filter) || u.UserName.Contains(filter))
-        //                .OrderBy(u => u.FullName)
-        //                .Skip(skipCount)
-        //                .Take(maxResultCount);
-        //            break;
-        //        case "fullName_Desc":
-        //            usersInDb = db.Users
-        //                .Where(u => u.FullName.Contains(filter) || u.UserName.Contains(filter))
-        //                .OrderByDescending(u => u.FullName)
-        //                .Skip(skipCount)
-        //                .Take(maxResultCount);
-        //            break;
-        //        case "userName_Desc":
-        //            usersInDb = db.Users
-        //                .Where(u => u.FullName.Contains(filter) || u.UserName.Contains(filter))
-        //                .OrderByDescending(u => u.UserName)
-        //                .Skip(skipCount)
-        //                .Take(maxResultCount);
-        //            break;
-        //        default:
-        //            usersInDb = db.Users
-        //                .Where(u => u.FullName.Contains(filter) || u.UserName.Contains(filter))
-        //                .OrderBy(u => u.UserName)
-        //                .Skip(skipCount)
-        //                .Take(maxResultCount);
-        //            break;
-        //    }
-        //    return await usersInDb
-        //                .Include(u => u.Roles)
-        //                .Select(u => new UserListDto()
-        //                {
-        //                    Id = u.Id,
-        //                    UserName = u.UserName,
-        //                    FullName = u.FullName,
-        //                    Email = u.Email,
-        //                    PhoneNumber = u.PhoneNumber
-        //                })
-        //                .ToListAsync();
-        //}
+            try
+            {
+                var user =_userService.Create(data);
+                await _unitOfWork.SaveAsync();
+                return CreatedAtAction("GetUserById", new { id = user.Id }, user.Id);
+            }
+            catch (Exception e)
+            {
+                throw new Exception("An unexpected error occured. Could not be added.", e);
+            }
+        }
 
-        //// GET: api/Users/5
-        //[ResponseType(typeof(UserDto))]
-        //public IActionResult GetUserById(string id)
-        //{
-        //    var userInDb = db.Users
-        //        .Select(u => new UserDto()
-        //        {
-        //            Id = u.Id,
-        //            UserName = u.UserName,
-        //            FullName = u.FullName,
-        //            Email = u.Email,
-        //            PhoneNumber = u.PhoneNumber
-        //        })
-        //        .FirstOrDefault(u => u.Id == id);
-        //    if (userInDb == null)
-        //    {
-        //        return NotFound();
-        //    }
+        // GET: api/Users
+        [SwaggerResponse(typeof(IEnumerable<AppUserListDto>))]
+        [HttpGet]
+        public async Task<IEnumerable<AppUserListDto>> GetUsers(string filter = "", string sorting = "", int maxResultCount = 50, int skipCount = 0)
+        {
+            var entities = await _userService.GetAllAsync();
+            return _mapper.Map<IEnumerable<AppUserListDto>>(entities);
+        }
 
-        //    return Ok(userInDb);
-        //}
+        // GET: api/Users/5
+        [SwaggerResponse(typeof(AppUserDto))]
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetUserById(int id)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
-        //// PUT: api/users/updateUser/5
-        //[ResponseType(typeof(void))]
-        //[Route("api/users/updateUser/{id}")]
-        //[HttpPut]
-        //public async Task<IActionResult> UpdateUser(string id, UserDto user)
-        //{
-        //    if (id != user.Id)
-        //    {
-        //        return BadRequest();
-        //    }
+            var user = await _userService.GetByIdAsync(id);
 
-        //    if (!ModelState.IsValid)
-        //    {
-        //        return BadRequest(ModelState);
-        //    }
-        //    var userInDb = db.Users.Find(id);
+            if (user == null)
+            {
+                return NotFound();
+            }
 
-        //    if (!string.IsNullOrEmpty(user.FullName)) userInDb.FullName = user.FullName;
-        //    if (!string.IsNullOrEmpty(user.Email)) userInDb.Email = user.Email;
-        //    if (!string.IsNullOrEmpty(user.Email)) userInDb.PhoneNumber = user.PhoneNumber;
-        //    db.Entry(userInDb).State = EntityState.Modified;
-        //    try
-        //    {
-        //        await db.SaveChangesAsync();
-        //        var roles = await _manager.GetRolesAsync(userInDb.Id);
-        //        if (roles.Count > 0)
-        //        {
-        //            await _manager.RemoveFromRolesAsync(userInDb.Id, roles.ToArray());
-        //        }
-        //        if (user.Roles != null && user.Roles.Length > 0)
-        //        {
-        //            await _manager.AddToRolesAsync(userInDb.Id, user.Roles.ToArray());
-        //        }
-        //        else
-        //        {
-        //            await _manager.AddToRoleAsync(user.Id, "Registerer");
-        //        };
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return InternalServerError();
-        //    }
+            var userDto = _mapper.Map<AppUserDto>(user);
+            return Ok(userDto);
+        }
 
-        //    return StatusCode(HttpStatusCode.NoContent);
-        //}
+        // PUT: api/users/updateUser/5
+        [SwaggerResponse(typeof(AppUserDto))]
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateUser(int id,[FromBody] AppUserDto userDto)
+        {
+            if (id != userDto.Id)
+            {
+                return BadRequest();
+            }
 
-        //// POST: /Account/ResetPassword/5
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var user = await _userService.GetByIdAsync(userDto.Id);
+            if (user == null)
+            {
+                return NotFound("User does not exist");
+            }
+
+            _mapper.Map(userDto, user);
+
+            try
+            {
+                _userService.Update(user);
+                await _unitOfWork.SaveAsync();
+            }
+
+            catch (Exception)
+            {
+                throw new Exception("An unexpected error occured. Could not update.");
+            }
+
+            return Ok(_mapper.Map<AppUserDto>(user));
+        }
+
+        // POST: /Account/ResetPassword/5
         //[HttpPost]
         //[Route("api/users/resetPassword/{id}")]
         //[Authorize(Roles = "Admin")]
@@ -192,7 +145,7 @@ namespace DataCapture.Controllers
         //        return BadRequest(ModelState);
         //    }
 
-        //    var adminUser = await _manager.FindByNameAsync(User.Identity.Name);
+        //    var adminUser = await _manager.Fin_contextyNameAsync(User.Iduser.Name);
         //    if (adminUser == null)
         //    {
         //        // Don't reveal that the user does not exist
@@ -203,7 +156,7 @@ namespace DataCapture.Controllers
         //    {
         //        return BadRequest("Invalid admin password");
         //    }
-        //    var user = await _manager.FindByIdAsync(id);
+        //    var user = await _manager.Fin_contextyIdAsync(id);
         //    if (user == null)
         //    {
         //        return BadRequest();
@@ -214,50 +167,36 @@ namespace DataCapture.Controllers
         //    {
         //        await _manager.UpdateAsync(user);
         //    }
-        //    catch (DbUpdateConcurrencyException ex)
+        //    catch (_contextUpdateConcurrencyException ex)
         //    {
-        //        throw new DbUpdateConcurrencyException(ex.Message);
+        //        throw new _contextUpdateConcurrencyException(ex.Message);
         //    }
 
         //    return StatusCode(HttpStatusCode.NoContent);
         //}
+        
+        // DELETE: api/Users/DeleteUser/5
+        [SwaggerResponse(typeof(int))]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteUser(int id)
+        {
+            var user = await _userService.GetByIdAsync(id);
+            if (user == null)
+            {
+                return BadRequest("The User to be deleted does not exist");
+            }
 
+            _userService.Delete(user);
 
-        //// DELETE: api/Users/DeleteUser/5
-        //[ResponseType(typeof(string))]
-        //public IActionResult DeleteUser(string id)
-        //{
-        //    var user = db.Users.Find(id);
-        //    if (user == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    db.Users.Remove(user);
-        //    try
-        //    {
-        //        db.SaveChanges();
-        //    }
-        //    catch (DbUpdateConcurrencyException ex)
-        //    {
-        //        throw new DbUpdateConcurrencyException(ex.Message);
-        //    }
-
-        //    return Ok(user.Id);
-        //}
-
-        //protected override void Dispose(bool disposing)
-        //{
-        //    if (disposing)
-        //    {
-        //        db.Dispose();
-        //    }
-        //    base.Dispose(disposing);
-        //}
-
-        //private bool AppUserExists(string id)
-        //{
-        //    return db.Users.Count(e => e.Id == id) > 0;
-        //}
+            try
+            {
+                await _unitOfWork.SaveAsync();
+                return Ok(user.Id);
+            }
+            catch (Exception)
+            {
+                throw new Exception("An unexpected error occured. Could not delete.");
+            }
+        }
     }
 }

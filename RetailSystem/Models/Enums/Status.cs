@@ -8,6 +8,6 @@ namespace RetailSystem.Models.Enums
     {
         Active,
         Suspended,
-        Ended
+        Terminated
     }
 }

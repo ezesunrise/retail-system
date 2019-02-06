@@ -70,7 +70,7 @@ namespace RetailSystem.Controllers
                 _repository.Add(entity);
                 await _unitOfWork.SaveAsync();
                 var createdResult = CreatedAtAction("GetBusinessById", new { id = entity.Id }, entity.Id);
-                createdResult.StatusCode = 200;
+                createdResult.StatusCode = 201;
                 return createdResult;
             }
             catch (Exception e)
@@ -96,7 +96,7 @@ namespace RetailSystem.Controllers
             var entity = await _repository.GetByIdAsync(entityDto.Id);
             if (entity == null)
             {
-                return NotFound("Supplier does not exist");
+                return NotFound("Business does not exist");
             }
 
             _mapper.Map(entityDto, entity);

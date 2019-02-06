@@ -17,7 +17,7 @@ namespace RetailSystem.Test.Controllers
         public async Task GetAllSuppliers_Should_return_IEnumerable_for_businessId_greater_than_zero(int businessId)
         {
             // Arrange
-            var mockRepository = new Mock<IRepository<Supplier>>;
+            //var mockRepository = new Mock<IRepository<Supplier>>();
 
             // Act
 

@@ -8,6 +8,9 @@ namespace RetailSystem.Mapping
     {
         public MappingProfile()
         {
+            CreateMap<AppUser, AppUserDto>();
+            CreateMap<AppUserDto, AppUser>();
+
             CreateMap<Business, BusinessDto>();
             CreateMap<BusinessDto, Business>();
 
@@ -86,6 +89,9 @@ namespace RetailSystem.Mapping
                 .ForMember(i => i.InvoiceId, ops => ops.Ignore());
 
             //Lists
+
+            CreateMap<AppUser, AppUserListDto>();
+            CreateMap<AppUserListDto, AppUser>();
 
             CreateMap<Business, BusinessListDto>();
             CreateMap<BusinessListDto, Business>();

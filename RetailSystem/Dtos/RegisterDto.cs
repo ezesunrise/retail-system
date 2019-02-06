@@ -8,7 +8,7 @@ namespace RetailSystem.Dtos
 {
     public class RegisterDto
     {
-        public string Id { get; set; }
+        public int Id { get; set; }
 
         [Required]
         [StringLength(64)]
@@ -21,6 +21,12 @@ namespace RetailSystem.Dtos
         [StringLength(256)]
         public string Email { get; set; }
 
+        [StringLength(15)]
+        public string PhoneNumber { get; set; }
+
+        [StringLength(256)]
+        public string Address { get; set; }
+
         [Required]
         [StringLength(64)]
         public string Password { get; set; }
@@ -29,7 +35,7 @@ namespace RetailSystem.Dtos
         [Compare(nameof(Password))]
         public string ConfirmPassword { get; set; }
 
-        public int Status { get; set; }
+        public Status Status { get; set; }
         public IList<KeyValuePairDto> StatusList
         {
             get
@@ -44,5 +50,12 @@ namespace RetailSystem.Dtos
         }
 
         public byte[] Photo { get; set; }
+
+        public string Role { get; set; }
+
+        public int? LocationId { get; set; }
+
+        public int? BusinessId { get; set; }
+
     }
 }

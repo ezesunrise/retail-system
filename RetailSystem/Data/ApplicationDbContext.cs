@@ -14,7 +14,7 @@ namespace RetailSystem.Data
         {
         }
 
-        //public DbSet<AppUser> AppUsers { get; set; }
+        public DbSet<AppUser> AppUsers { get; set; }
         //public DbSet<BackOrder> BackOrders { get; set; }
         public DbSet<Business> Businesses { get; set; }
         public DbSet<Manufacturer> Manufacturers { get; set; }
@@ -41,6 +41,15 @@ namespace RetailSystem.Data
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
+            //AppUser
+            builder.Entity<AppUser>()
+                .HasOne(u => u.Location)
+                .WithMany(l => l.AppUsers)
+                .OnDelete(DeleteBehavior.Restrict);
+            builder.Entity<AppUser>()
+                .HasOne(u => u.Business)
+                .WithMany(b => b.AppUsers)
+                .OnDelete(DeleteBehavior.Restrict);
             //Category
             builder.Entity<Category>()
                 .HasIndex(c => c.Name).HasName("Category_Name").IsUnique();

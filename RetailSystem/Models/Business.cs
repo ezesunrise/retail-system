@@ -9,6 +9,7 @@ namespace RetailSystem.Models
     {
         public Business()
         {
+            AppUsers = new HashSet<AppUser>();
             Locations = new HashSet<Location>();
             Customers = new HashSet<Customer>();
             Suppliers = new HashSet<Supplier>();
@@ -27,6 +28,7 @@ namespace RetailSystem.Models
 
         public byte[] Logo { get; set; }
 
+        public virtual ICollection<AppUser> AppUsers { get; set; }
         public virtual ICollection<Location> Locations { get; set; }
         public virtual ICollection<Manufacturer> Manufacturers { get; set; }
         public virtual ICollection<Customer> Customers { get; set; }

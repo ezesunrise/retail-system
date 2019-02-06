@@ -10,10 +10,10 @@ namespace RetailSystem.Services
     public interface IAppUserService
     {
         AppUser Authenticate(string userName, string password);
-        IEnumerable<AppUser> GetAll();
-        AppUser GetById(string id);
-        AppUser Create(AppUserDto user, string password);
-        AppUser Update(AppUserDto user, string password = null);
-        void Delete(string id);
+        Task<IEnumerable<AppUser>> GetAllAsync();
+        Task<AppUser> GetByIdAsync(int id);
+        AppUser Create(RegisterDto user);
+        void Update(AppUser user);
+        void Delete(AppUser user);
     }
 }

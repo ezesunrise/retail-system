@@ -49,16 +49,12 @@ namespace RetailSystem
 
             services.AddCors();
 
-            //services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            //    .AddJwtBearer(options =>
-            //    {
-            //        options.Authority
-            //    });
-
             services.AddAutoMapper();
 
+            //Inject Service Implementations
+            services.AddScoped<IAppUserService, AppUserService>();
+
             // Inject Repository Implementations
-            //services.AddScoped<IAppUserService, AppUserService>();
             services.AddScoped<IRepository<Item>, Repository<Item>>();
             services.AddScoped<IRepository<Business>, Repository<Business>>();
             services.AddScoped<IRepository<Category>, Repository<Category>>();
@@ -95,85 +91,54 @@ namespace RetailSystem
             //services.AddScoped<IRepository<Transfer>, TransferRepository>();
             //services.AddScoped<IRepository<Invoice>, InvoiceRepository>();
 
+            //services.AddIdentity<AppUser, IdentityRole>()
+            //    .AddEntityFrameworkStores<ApplicationDbContext>();
+
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
                     Configuration.GetConnectionString("DefaultConnection")));
-
-            services.AddIdentity<AppUser, IdentityRole>()
-                .AddEntityFrameworkStores<ApplicationDbContext>();
 
             // configure strongly typed settings object
             var appSettingsSection = Configuration.GetSection("AppSettings");
             services.Configure<AppSettings>(appSettingsSection);
 
             // configure jwt authentication
-            //var appSettings = appSettingsSection.Get<AppSettings>();
-            //var key = Encoding.ASCII.GetBytes(appSettings.Secret);
-            //services.AddAuthentication(x =>
-            //{
-            //    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            //    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            //})
-            //.AddJwtBearer(x =>
-            //{
-            //    x.Events = new JwtBearerEvents
-            //    {
-            //        OnTokenValidated = context =>
-            //        {
-            //            var userService = context.HttpContext.RequestServices.GetRequiredService<IAppUserService>();
-            //            var userId = context.Principal.Identity.Name;
-            //            var user = userService.GetById(userId);
-            //            if (user == null)
-            //            {
-            //                // return unauthorized if user does not exist
-            //                context.Fail("Unauthorized");
-            //            }
-            //            return Task.CompletedTask;
-            //        }
-            //    };
-            //    // true for production
-            //    x.RequireHttpsMetadata = false;
-            //    x.SaveToken = true;
-            //    x.TokenValidationParameters = new TokenValidationParameters
-            //    {
-            //        ValidateIssuerSigningKey = true,
-            //        IssuerSigningKey = new SymmetricSecurityKey(key),
-            //        ValidateIssuer = false,
-            //        ValidateAudience = false
-            //    };
-            //});
+            var appSettings = appSettingsSection.Get<AppSettings>();
+            var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(appSettings.Secret));
+            services.AddAuthentication(x =>
+            {
+                x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(x =>
+            {
+                // true for production
+                x.RequireHttpsMetadata = false;
+                x.SaveToken = true;
+                x.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = key,
+                    ValidateIssuer = false,
+                    ValidateAudience = false
+                };
+            });
 
             services.AddSwaggerDocument(config =>
             {
                 config.PostProcess = document =>
                 {
                     document.Info.Title = "Retail System Api";
-                    document.Info.Description = "An Api for daily retail activities";
+                    document.Info.Description = "Retail Management Api";
                     document.Info.Contact = new NSwag.SwaggerContact
                     {
                         Name = "Sunrise Ezekikwu",
                         Email = "ezesunrise@yahoo.com",
                         Url = "https://linkedin.com/in/ezesunrise"
                     };
+                    document.Info.Version = "1.0";
                 };
             });
-
-            //services.AddAuthorization(options =>
-            //{
-            //    options.AddPolicy("apipolicy", b =>
-            //    {
-            //        b.RequireAuthenticatedUser();
-            //        b.RequireClaim(ClaimTypes.Role, "Access.Api");
-            //        b.AuthenticationSchemes = new List<string>
-            //        {
-            //            JwtBearerDefaults.AuthenticationScheme
-            //        };
-            //    });
-            //    options.AddPolicy("defaultpolicy", b =>
-            //    {
-            //        b.RequireAuthenticatedUser();
-            //    });
-            //});
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
@@ -190,18 +155,18 @@ namespace RetailSystem
             {
                 app.UseExceptionHandler("/Home/Error");
                 app.UseHsts();
-                //app.UseCors(x => x
-                //.AllowAnyOrigin()
-                //.AllowAnyMethod()
-                //.AllowAnyHeader()
-                //.AllowCredentials());
+                app.UseCors(x => x
+                .AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials());
             }
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCookiePolicy();
 
-            //app.UseAuthentication();
+            app.UseAuthentication();
 
             app.UseSwagger();
             app.UseSwaggerUi3();

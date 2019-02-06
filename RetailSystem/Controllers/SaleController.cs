@@ -113,7 +113,7 @@ namespace RetailSystem.Controllers
             {
                 await _unitOfWork.SaveAsync();
                 var createdResult = CreatedAtAction("GetSaleById", new { id = entity.Id }, entity.Id);
-                createdResult.StatusCode = 200;
+                createdResult.StatusCode = 201;
                 return createdResult;
             }
             catch (Exception e)

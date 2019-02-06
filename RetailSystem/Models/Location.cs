@@ -10,6 +10,7 @@ namespace RetailSystem.Models
     {
         public Location()
         {
+            AppUsers = new HashSet<AppUser>();
             Status = Status.Active;
             LocationItems = new HashSet<LocationItem>();
             Sales = new HashSet<Sale>();
@@ -48,6 +49,7 @@ namespace RetailSystem.Models
         public int BusinessId { get; set; }
         public Business Business { get; set; }
 
+        public virtual ICollection<AppUser> AppUsers { get; set; }
         public ICollection<LocationItem> LocationItems { get; set; }
         public ICollection<Sale> Sales { get; set; }
         public ICollection<PurchaseOrder> PurchaseOrders { get; set; }

@@ -7,7 +7,7 @@ namespace RetailSystem.Dtos
 {
     public class AppUserListDto
     {
-        public string Id { get; set; }
+        public int Id { get; set; }
 
         public string UserName { get; set; }
 
@@ -19,6 +19,15 @@ namespace RetailSystem.Dtos
 
         public string Address { get; set; }
 
-        public string[] Roles { get; set; }
+        public byte[] Photo { get; set; }
+
+        public string Role { get; set; }
+
+        public int? LocationId { get; set; }
+        public string LocationName { get; set; }
+
+        public int? BusinessId { get; set; }
+        public string BusinessName { get; set; }
+
     }
 }
