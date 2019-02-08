@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +16,7 @@ namespace RetailSystem.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]/[action]")]
+    [Authorize(Roles = Role.AnyAdmin)]
     public class BusinessController : Controller
     {
         private readonly IRepository<Business> _repository;
@@ -57,6 +59,7 @@ namespace RetailSystem.Controllers
 
         [HttpPost]
         [SwaggerResponse(typeof(BusinessDto))]
+        [Authorize(Roles = Role.SuperAdmin)]
         public async Task<IActionResult> CreateBusiness([FromBody] BusinessDto entityDto)
         {
             if (!ModelState.IsValid)
@@ -81,6 +84,7 @@ namespace RetailSystem.Controllers
 
         [HttpPut("{id}")]
         [SwaggerResponse(typeof(BusinessDto))]
+        [Authorize(Roles = Role.SuperAdmin)]
         public async Task<IActionResult> UpdateBusiness([FromRoute] int id, [FromBody] BusinessDto entityDto)
         {
             if (!ModelState.IsValid)
@@ -117,6 +121,7 @@ namespace RetailSystem.Controllers
         
         [HttpDelete("{id}")]
         [SwaggerResponse(typeof(int))]
+        [Authorize(Roles = Role.SuperAdmin)]
         public async Task<IActionResult> DeleteBusiness([FromRoute] int id)
         {
             var entity = await _repository.GetByIdAsync(id);

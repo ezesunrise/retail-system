@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using NSwag.Annotations;
 using RetailSystem.Data;
 using RetailSystem.Dtos;
+using RetailSystem.Models;
 using RetailSystem.Services;
 using System;
 using System.Collections.Generic;
@@ -13,6 +14,7 @@ namespace DataCapture.Controllers
 {
     [Authorize(Roles = "Admin")]
     [Route("api/[controller]/[action]")]
+    [Authorize(Roles = Role.AdminOrManager)]
     public class AppUserController : Controller
     {
         private IAppUserService _userService;
@@ -54,7 +56,11 @@ namespace DataCapture.Controllers
         [HttpGet]
         public async Task<IEnumerable<AppUserListDto>> GetUsers(string filter = "", string sorting = "", int maxResultCount = 50, int skipCount = 0)
         {
-            var entities = await _userService.GetAllAsync();
+            var entities = await _userService
+                .GetAsync(User.HasClaim(c => c.Type == "business")
+                ? int.Parse(User.FindFirst(c => c.Type == "business").Value) : 0,
+                User.HasClaim(c => c.Type == "location")
+                ? int.Parse(User.FindFirst(c => c.Type == "location").Value) : 0);
             return _mapper.Map<IEnumerable<AppUserListDto>>(entities);
         }
 
@@ -82,6 +88,7 @@ namespace DataCapture.Controllers
         // PUT: api/users/updateUser/5
         [SwaggerResponse(typeof(AppUserDto))]
         [HttpPut("{id}")]
+        [Authorize(Roles = Role.Admin)]
         public async Task<IActionResult> UpdateUser(int id,[FromBody] AppUserDto userDto)
         {
             if (id != userDto.Id)
@@ -116,55 +123,27 @@ namespace DataCapture.Controllers
             return Ok(_mapper.Map<AppUserDto>(user));
         }
 
-        // POST: /Account/ResetPassword/5
-        //[HttpPost]
-        //[Route("api/users/resetPassword/{id}")]
-        //[Authorize(Roles = "Admin")]
-        //public async Task<IActionResult> ResetPassword(string id, ResetPasswordDto model)
-        //{
-        //    if (id != model.UserId)
-        //    {
-        //        return BadRequest();
-        //    }
+        // POST: /Account/ResetPassword
+        [HttpPost]
+        [SwaggerResponse(typeof(void))]
+        [Authorize(Roles = Role.Admin)]
+        public async Task<IActionResult> ResetPassword()
+        {
+            var user = await _userService.GetByIdAsync(int.Parse(User.Identity.Name));
+            if (user == null)
+            {
+                // Don't reveal that the user does not exist
+                return BadRequest();
+            }
+            _userService.ResetPassword(user);
+            await _unitOfWork.SaveAsync();
+            return Ok();
+        }
 
-        //    if (!ModelState.IsValid)
-        //    {
-        //        return BadRequest(ModelState);
-        //    }
-
-        //    var adminUser = await _manager.Fin_contextyNameAsync(User.Iduser.Name);
-        //    if (adminUser == null)
-        //    {
-        //        // Don't reveal that the user does not exist
-        //        return BadRequest();
-        //    }
-        //    var passResult = await _manager.CheckPasswordAsync(adminUser, model.AdminPassword);
-        //    if (!passResult)
-        //    {
-        //        return BadRequest("Invalid admin password");
-        //    }
-        //    var user = await _manager.Fin_contextyIdAsync(id);
-        //    if (user == null)
-        //    {
-        //        return BadRequest();
-        //    }
-        //    user.PasswordHash = new PasswordHasher().HashPassword(model.Password ?? "password");
-
-        //    try
-        //    {
-        //        await _manager.UpdateAsync(user);
-        //    }
-        //    catch (_contextUpdateConcurrencyException ex)
-        //    {
-        //        throw new _contextUpdateConcurrencyException(ex.Message);
-        //    }
-
-        //    return StatusCode(HttpStatusCode.NoContent);
-        //}
-        
         // DELETE: api/Users/DeleteUser/5
         [SwaggerResponse(typeof(int))]
         [HttpDelete("{id}")]
+        [Authorize(Roles = Role.Admin)]
         public async Task<IActionResult> DeleteUser(int id)
         {
             var user = await _userService.GetByIdAsync(id);

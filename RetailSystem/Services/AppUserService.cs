@@ -56,14 +56,25 @@ namespace RetailSystem.Services
             return newUser;
         }
 
-        public async Task<IEnumerable<AppUser>> GetAllAsync()
+        public async Task<IEnumerable<AppUser>> GetAsync(int businessId, int locationId)
         {
+            if (businessId != 0)
+                return await _context.AppUsers.Where(u => u.BusinessId == businessId).ToListAsync();
+
+            else if(locationId != 0)
+                return await _context.AppUsers.Where(u => u.LocationId == locationId).ToListAsync();
+
             return await _context.AppUsers.ToListAsync();
         }
 
         public async Task<AppUser> GetByIdAsync(int id)
         {
             return await _context.AppUsers.SingleOrDefaultAsync(u => u.Id == id);
+        }
+
+        public async Task<AppUser> GetByUserNameAsync(string userName)
+        {
+            return await _context.AppUsers.SingleOrDefaultAsync(u => u.UserName == userName);
         }
 
         public void Update(AppUser user)
@@ -76,7 +87,18 @@ namespace RetailSystem.Services
             _context.AppUsers.Remove(user);
         }
 
-        private static void CreatePasswordHash(string password, out string passwordHash, out string passwordSalt)
+        public void ResetPassword(AppUser user)
+        {
+            string hash;
+            string salt;
+            AppUserService.CreatePasswordHash("password", out hash, out salt);
+            user.PasswordHash = hash;
+            user.PasswordSalt = salt;
+
+            _context.Entry(user).State = EntityState.Modified;
+        }
+
+        public static void CreatePasswordHash(string password, out string passwordHash, out string passwordSalt)
         {
             if (password == null) throw new ArgumentNullException("password");
             if (string.IsNullOrWhiteSpace(password)) throw new ArgumentException("Value cannot be empty or whitespace");

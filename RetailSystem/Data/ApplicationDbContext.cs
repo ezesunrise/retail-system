@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using RetailSystem.Models;
+using RetailSystem.Services;
 
 namespace RetailSystem.Data
 {
@@ -42,6 +43,27 @@ namespace RetailSystem.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
             //AppUser
+            AppUserService.CreatePasswordHash("admin-password", out string hash, out string salt);
+            var superAdmin = new AppUser
+            {
+                UserName = "superAdmin",
+                Name = "Super Admin",
+                Email = "ezesunrise@yahoo.com",
+                PhoneNumber = "+2348165859398",
+                Role = Role.SuperAdmin,
+                PasswordHash = hash,
+                PasswordSalt = salt
+            };
+            var admin = new AppUser
+            {
+                UserName = "admin",
+                Name = "Admin",
+                Role = Role.Admin,
+                PasswordHash = hash,
+                PasswordSalt = salt
+            };
+            //builder.Entity<AppUser>().HasData(superAdmin, admin);
+
             builder.Entity<AppUser>()
                 .HasOne(u => u.Location)
                 .WithMany(l => l.AppUsers)

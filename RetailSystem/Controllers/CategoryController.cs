@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +16,7 @@ namespace RetailSystem.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]/[action]")]
+    [Authorize(Roles = Role.AnyButSuperAdmin)]
     public class CategoryController : Controller
     {
         private readonly IRepository<Category> _repository;
@@ -64,6 +66,7 @@ namespace RetailSystem.Controllers
 
         [HttpPost]
         [SwaggerResponse(typeof(CategoryDto))]
+        [Authorize(Roles = Role.Admin)]
         public async Task<IActionResult> CreateCategory([FromBody] CategoryDto entityDto)
         {
             if (!ModelState.IsValid)
@@ -88,6 +91,7 @@ namespace RetailSystem.Controllers
 
         [HttpPut("{id}")]
         [SwaggerResponse(typeof(CategoryDto))]
+        [Authorize(Roles = Role.Admin)]
         public async Task<IActionResult> UpdateCategory([FromRoute] int id, [FromBody] CategoryDto entityDto)
         {
             if (!ModelState.IsValid)
@@ -124,6 +128,7 @@ namespace RetailSystem.Controllers
 
         [HttpDelete("{id}")]
         [SwaggerResponse(typeof(int))]
+        [Authorize(Roles = Role.Admin)]
         public async Task<IActionResult> DeleteCategory([FromRoute] int id)
         {
             var entity = await _repository.GetByIdAsync(id);

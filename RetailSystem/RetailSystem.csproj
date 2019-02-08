@@ -8,6 +8,9 @@
     <Company>REE</Company>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageTags>retail,Inventory,sale,order,purchase,warehouse,store</PackageTags>
+    <ApplicationIcon />
+    <OutputType>Exe</OutputType>
+    <StartupObject />
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,6 +30,8 @@
     <Compile Remove="Migrations\20190205083546_UpdatedAppUser.Designer.cs" />
     <Compile Remove="Migrations\20190205083904_UpdatedAppUser.cs" />
     <Compile Remove="Migrations\20190205083904_UpdatedAppUser.Designer.cs" />
+    <Compile Remove="Migrations\20190208080105_UpdatedUser.cs" />
+    <Compile Remove="Migrations\20190208080105_UpdatedUser.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

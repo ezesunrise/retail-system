@@ -53,6 +53,7 @@ namespace RetailSystem
 
             //Inject Service Implementations
             services.AddScoped<IAppUserService, AppUserService>();
+            services.AddScoped<IAccountService, AccountService>();
 
             // Inject Repository Implementations
             services.AddScoped<IRepository<Item>, Repository<Item>>();
@@ -74,25 +75,6 @@ namespace RetailSystem
             services.AddScoped<IRepository<Invoice>, InvoiceRepository>();
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
-
-            //services.AddScoped<IRepository<Item>, ItemRepository>();
-            //services.AddScoped<IRepository<Business>, BusinessRepository>();
-            //services.AddScoped<IRepository<Category>, CategoryRepository>();
-            //services.AddScoped<IRepository<Customer>, CustomerRepository>();
-            //services.AddScoped<IRepository<Location>, LocationRepository>();
-            //services.AddScoped<IRepository<Manufacturer>, ManufacturerRepository>();
-            //services.AddScoped<IRepository<Supplier>, SupplierRepository>();
-            //services.AddScoped<IRepository<ReportGroup>, ReportGroupRepository>();
-            //services.AddScoped<IRepository<Unit>, UnitRepository>();
-            //services.AddScoped<IRepository<SubCategory>, SubCategoryRepository>();
-            //services.AddScoped<IRepository<Order>, OrderRepository>();
-            //services.AddScoped<IRepository<Sale>, SaleRepository>();
-            //services.AddScoped<IRepository<Purchase>, PurchaseRepository>();
-            //services.AddScoped<IRepository<Transfer>, TransferRepository>();
-            //services.AddScoped<IRepository<Invoice>, InvoiceRepository>();
-
-            //services.AddIdentity<AppUser, IdentityRole>()
-            //    .AddEntityFrameworkStores<ApplicationDbContext>();
 
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
@@ -162,15 +144,14 @@ namespace RetailSystem
                 .AllowCredentials());
             }
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCookiePolicy();
-
+            
             app.UseAuthentication();
 
             app.UseSwagger();
             app.UseSwaggerUi3();
-
 
             app.UseMvc(routes =>
             {

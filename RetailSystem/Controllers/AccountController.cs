@@ -41,7 +41,7 @@ namespace DataCapture.Controllers
 
         // POST: /Account/ChangePassword
         [HttpPost]
-        [SwaggerResponse(typeof(string))]
+        [SwaggerResponse(typeof(void))]
         public async Task<IActionResult> ChangePassword(ChangePasswordDto dto)
         {
             if (!ModelState.IsValid)
@@ -56,7 +56,7 @@ namespace DataCapture.Controllers
                 return BadRequest();
             }
             //check password validity
-            if (!_accountService.VerifyPasswordHash(dto.Password, user.PasswordHash, user.PasswordSalt))
+            if (!AccountService.VerifyPasswordHash(dto.Password, user.PasswordHash, user.PasswordSalt))
             {
                 return BadRequest("Incorrect password");
             }

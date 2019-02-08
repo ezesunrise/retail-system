@@ -17,15 +17,15 @@ namespace RetailSystem.Services
 {
     public class AccountService : IAccountService
     {
-        private ApplicationDbContext _context;
-        private AppSettings _appSettings;
+        private readonly AppSettings _appSettings;
         private readonly IMapper _mapper;
+        private readonly IAppUserService _userService;
         
-        public AccountService(ApplicationDbContext context, IOptions<AppSettings> appSettings, IMapper mapper)
+        public AccountService(IAppUserService userService, IOptions<AppSettings> appSettings, IMapper mapper)
         {
-            _context = context;
             _appSettings = appSettings.Value;
             _mapper = mapper;
+            _userService = userService;
         }
         
         public async Task<AppUser> AuthenticateAsync(AuthDto auth)
@@ -35,11 +35,12 @@ namespace RetailSystem.Services
                 return null;
             }
             
-            var user = await _context.AppUsers.SingleOrDefaultAsync(u => u.UserName == auth.UserName);
+            var user = await _userService.GetByUserNameAsync(auth.UserName);
             if (user == null)
             {
                 return null;
             }
+
             //check password validity
             if (!VerifyPasswordHash(auth.Password, user.PasswordHash, user.PasswordSalt)) {
                 return null;
@@ -52,7 +53,9 @@ namespace RetailSystem.Services
                 Subject = new ClaimsIdentity(new Claim[]
                 {
                     new Claim(ClaimTypes.Name, user.Id.ToString()),
-                    new Claim(ClaimTypes.Role, user.Role)
+                    new Claim(ClaimTypes.Role, user.Role),
+                    new Claim("location", user.LocationId.ToString()),
+                    new Claim("business", user.BusinessId.ToString())
                 }),
                 Expires = DateTime.UtcNow.AddDays(7),
                 SigningCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature)
@@ -68,26 +71,14 @@ namespace RetailSystem.Services
         {
             string hash;
             string salt;
-            CreatePasswordHash(newPassword, out hash, out salt);
+            AppUserService.CreatePasswordHash(newPassword, out hash, out salt);
             user.PasswordHash = hash;
             user.PasswordSalt = salt;
 
-            _context.Entry(user).State = EntityState.Modified;
+            _userService.Update(user);
         }
 
-        private static void CreatePasswordHash(string password, out string passwordHash, out string passwordSalt)
-        {
-            if (password == null) throw new ArgumentNullException("password");
-            if (string.IsNullOrWhiteSpace(password)) throw new ArgumentException("Value cannot be empty or whitespace");
-
-            using (var hmac = new System.Security.Cryptography.HMACSHA512())
-            {
-                passwordSalt = Convert.ToBase64String(hmac.Key);
-                passwordHash = Convert.ToBase64String(hmac.ComputeHash(Encoding.ASCII.GetBytes(password)));
-            }
-        }
-
-        public bool VerifyPasswordHash(string password, string userHashString, string userSaltString)
+        public static bool VerifyPasswordHash(string password, string userHashString, string userSaltString)
         {
             var userHash = Convert.FromBase64String(userHashString);
             var userSalt = Convert.FromBase64String(userSaltString);
