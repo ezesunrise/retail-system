@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 
 namespace DataCapture.Controllers
 {
+    [ApiController]
     [Authorize(Roles = "Admin")]
     [Route("api/[controller]/[action]")]
     [Authorize(Roles = Role.AdminOrManager)]
@@ -34,11 +35,6 @@ namespace DataCapture.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateUser([FromBody] RegisterDto data)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
             try
             {
                 var user =_userService.Create(data);
@@ -57,9 +53,9 @@ namespace DataCapture.Controllers
         public async Task<IEnumerable<AppUserListDto>> GetUsers(string filter = "", string sorting = "", int maxResultCount = 50, int skipCount = 0)
         {
             var entities = await _userService
-                .GetAsync(User.HasClaim(c => c.Type == "business")
+                .GetAsync(User?.HasClaim(c => c.Type == "business") ?? false
                 ? int.Parse(User.FindFirst(c => c.Type == "business").Value) : 0,
-                User.HasClaim(c => c.Type == "location")
+                User?.HasClaim(c => c.Type == "location") ?? false
                 ? int.Parse(User.FindFirst(c => c.Type == "location").Value) : 0);
             return _mapper.Map<IEnumerable<AppUserListDto>>(entities);
         }

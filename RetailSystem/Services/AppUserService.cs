@@ -36,21 +36,9 @@ namespace RetailSystem.Services
             string hash;
             string salt;
             CreatePasswordHash(data.Password, out hash, out salt);
-
-            AppUser newUser = new AppUser() {
-                UserName = data.UserName,
-                Name = data.Name,
-                Email = data.Email,
-                PhoneNumber = data.PhoneNumber,
-                Address = data.Address,
-                Photo = data.Photo,
-                Status = data.Status,
-                Role = data.Role,
-                PasswordHash = hash,
-                PasswordSalt = salt,
-                NormalizedUserName = data.UserName.ToUpper(),
-                NormalizedEmail = data.Email.ToUpper()
-            };
+            var newUser = _mapper.Map<AppUser>(data);
+            newUser.PasswordHash = hash;
+            newUser.PasswordSalt = salt;
             _context.AppUsers.Add(newUser);
 
             return newUser;

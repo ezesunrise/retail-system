@@ -29,7 +29,7 @@ namespace DataCapture.Controllers
         [AllowAnonymous]
         [SwaggerResponse(typeof(string))]
         [HttpPost]
-        public async Task<IActionResult> Authenticate(AuthDto authDto)
+        public async Task<IActionResult> Authenticate([FromBody] AuthDto authDto)
         {
             var user = await _accountService.AuthenticateAsync(authDto);
 
@@ -42,7 +42,8 @@ namespace DataCapture.Controllers
         // POST: /Account/ChangePassword
         [HttpPost]
         [SwaggerResponse(typeof(void))]
-        public async Task<IActionResult> ChangePassword(ChangePasswordDto dto)
+	[Authorize]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
         {
             if (!ModelState.IsValid)
             {

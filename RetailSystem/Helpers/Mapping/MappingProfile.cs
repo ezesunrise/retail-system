@@ -10,6 +10,9 @@ namespace RetailSystem.Mapping
         {
             CreateMap<AppUser, AppUserDto>();
             CreateMap<AppUserDto, AppUser>();
+            CreateMap<RegisterDto, AppUser>()
+                .ForMember(u => u.NormalizedUserName, opt => opt.MapFrom(u => u.UserName.ToUpper()))
+                .ForMember(u => u.NormalizedEmail, opt => opt.MapFrom(u => u.Email.ToUpper()));
 
             CreateMap<Business, BusinessDto>();
             CreateMap<BusinessDto, Business>();
