@@ -54,6 +54,7 @@ namespace RetailSystem.Services
                 {
                     new Claim(ClaimTypes.Name, user.Id.ToString()),
                     new Claim(ClaimTypes.Role, user.Role),
+                    new Claim("userName", user.UserName),
                     new Claim("location", user.LocationId.ToString()),
                     new Claim("business", user.BusinessId.ToString())
                 }),

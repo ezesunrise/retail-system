@@ -29,7 +29,7 @@ namespace RetailSystem.Dtos
         [StringLength(1024)]
         public string Note { get; set; }
 
-        public int? CategoryId { get; set; }
+        public int CategoryId { get; set; }
         public string CategoryName { get; set; }
 
         public int? SubCategoryId { get; set; }

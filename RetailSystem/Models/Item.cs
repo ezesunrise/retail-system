@@ -42,7 +42,7 @@ namespace RetailSystem.Models
         [StringLength(1024)]
         public string Note { get; set; }
 
-        public int? CategoryId { get; set; }
+        public int CategoryId { get; set; }
         public virtual Category Category { get; set; }
 
         public int? SubCategoryId { get; set; }

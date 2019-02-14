@@ -16,7 +16,6 @@ namespace RetailSystem.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]/[action]")]
-    [Authorize(Roles = Role.AnyAdmin)]
     public class BusinessController : Controller
     {
         private readonly IRepository<Business> _repository;
@@ -39,6 +38,7 @@ namespace RetailSystem.Controllers
 
         [HttpGet("{id}")]
         [SwaggerResponse(typeof(BusinessDto))]
+        [Authorize(Roles = Role.AnyAdmin)]
         public async Task<IActionResult> GetBusinessById([FromRoute] int id)
         {
             if (!ModelState.IsValid)

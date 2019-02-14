@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace RetailSystem.Data
 {
-    public class ItemRepository : IRepository<Item>
+    public class ItemRepository : IItemRepository
     {
         private ApplicationDbContext _context { get; set; }
 
@@ -20,12 +20,24 @@ namespace RetailSystem.Data
 
         public async Task<IEnumerable<Item>> GetAsync(Expression<Func<Item, bool>> predicate)
         {
-            return await _context.Items.Include(i => i.LocationItems).Where(predicate).ToListAsync();
+            return await _context.Items
+                .Include(i => i.LocationItems)
+                .Include(i => i.Category)
+                .Where(predicate)
+                .OrderBy(i => i.Code)
+                .ToListAsync();
         }
 
         public async Task<IEnumerable<Item>> GetAllAsync()
         {
-            return await _context.Items.ToListAsync();
+            return await _context.Items
+                .OrderBy(i => i.Code)
+                .ToListAsync();
+        }
+
+        public async Task<Item> GetLastAsync(Expression<Func<Item, bool>> predicate)
+        {
+            return await _context.Items.Where(predicate).OrderBy(i => i.Code).LastOrDefaultAsync();
         }
 
         public async Task<Item> GetByIdAsync(int id)

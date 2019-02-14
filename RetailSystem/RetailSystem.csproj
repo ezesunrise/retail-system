@@ -11,6 +11,8 @@
     <ApplicationIcon />
     <OutputType>Exe</OutputType>
     <StartupObject />
+    <Description>Api for retail managaement</Description>
+    <Copyright>EzeSunrise</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
@@ -32,6 +34,12 @@
     <Compile Remove="Migrations\20190205083904_UpdatedAppUser.Designer.cs" />
     <Compile Remove="Migrations\20190208080105_UpdatedUser.cs" />
     <Compile Remove="Migrations\20190208080105_UpdatedUser.Designer.cs" />
+    <Compile Remove="Migrations\20190213140814_AddedCodeToCategoryAndBusinessIdToItem.cs" />
+    <Compile Remove="Migrations\20190213140814_AddedCodeToCategoryAndBusinessIdToItem.Designer.cs" />
+    <Compile Remove="Migrations\20190213144010_AddedCodeToCategoryBusinessIdToItemAndIndices.cs" />
+    <Compile Remove="Migrations\20190213144010_AddedCodeToCategoryBusinessIdToItemAndIndices.Designer.cs" />
+    <Compile Remove="Migrations\20190213145139_AddedCodeToCategoryAndUpdatedIndices.cs" />
+    <Compile Remove="Migrations\20190213145139_AddedCodeToCategoryAndUpdatedIndices.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -43,7 +51,7 @@
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
-    <TypeScriptTarget>ES2015</TypeScriptTarget>
+    <TypeScriptTarget>ES2017</TypeScriptTarget>
     <TypeScriptJSXEmit>None</TypeScriptJSXEmit>
     <TypeScriptModuleKind>ES6</TypeScriptModuleKind>
     <TypeScriptCompileOnSaveEnabled>True</TypeScriptCompileOnSaveEnabled>

@@ -27,7 +27,8 @@ namespace RetailSystem.Mapping
             CreateMap<InvoiceDto, Invoice>();
 
             CreateMap<Item, ItemDto>();
-            CreateMap<ItemDto, Item>();
+            CreateMap<ItemDto, Item>()
+                .ForMember(i => i.Code, opt => opt.Ignore());
 
             CreateMap<Location, LocationDto>();
             CreateMap<LocationDto, Location>();
@@ -108,7 +109,8 @@ namespace RetailSystem.Mapping
             CreateMap<Invoice, InvoiceListDto>();
             CreateMap<InvoiceListDto, Invoice>();
 
-            CreateMap<Item, ItemListDto>();
+            CreateMap<Item, ItemListDto>()
+                .ForMember(i => i.CategoryName, opt => opt.MapFrom(i => i.Category.Name));
             CreateMap<ItemListDto, Item>();
 
             CreateMap<Location, LocationListDto>();

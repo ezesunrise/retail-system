@@ -18,9 +18,12 @@ namespace RetailSystem.Models
         
         [StringLength(256)]
         public string Description { get; set; }
+        
+        [Required]
+        [StringLength(AppConsts.CategoryCodeLength)]
+        public string Code { get; set; }
 
         public int BusinessId { get; set; }
-
         public virtual Business Business { get; set; }
         
         public virtual ICollection<Item> Items { get; set; }

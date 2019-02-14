@@ -11,7 +11,7 @@ namespace RetailSystem.Dtos
         [StringLength(128)]
         public string Name { get; set; }
         
-        public string EmailAddress { get; set; }
+        public string Email { get; set; }
 
         [StringLength(128)]
         public string ContactPerson { get; set; } 

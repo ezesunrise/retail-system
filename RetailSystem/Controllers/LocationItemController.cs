@@ -10,6 +10,7 @@ using NSwag.Annotations;
 using RetailSystem.Data;
 using RetailSystem.Dtos;
 using RetailSystem.Models;
+using RetailSystem.Models.Enums;
 
 namespace RetailSystem.Controllers
 {
@@ -18,14 +19,41 @@ namespace RetailSystem.Controllers
     public class LocationItemController : Controller
     {
         private readonly ICompositeRepository<LocationItem> _repository;
+        private readonly IItemRepository _itemRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public LocationItemController(ICompositeRepository<LocationItem> repository, IUnitOfWork unitOfWork, IMapper mapper)
+        public LocationItemController(ICompositeRepository<LocationItem> repository, IItemRepository itemRepository,
+                                      IUnitOfWork unitOfWork, IMapper mapper)
         {
             _repository = repository;
+            _itemRepository = itemRepository;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+        }
+        
+        [HttpGet]
+        public async Task<IList<KeyValuePairDto>[]> GetListItems(int bussinessId)
+        {
+            List<KeyValuePairDto>[] lists = new List<KeyValuePairDto>[4];
+
+            var items = await _itemRepository
+                .GetAsync(i => i.Category.BusinessId == bussinessId);
+            var itemList = items.Select(i => new KeyValuePairDto
+            {
+                DisplayName = i.Description,
+                Value = i.Id
+            }).ToList();
+            
+            var statusList = new List<KeyValuePairDto>();
+            foreach (int value in Enum.GetValues(typeof(Status)))
+            {
+                statusList.Add(new KeyValuePairDto { Value = value, DisplayName = Enum.GetName(typeof(Status), value) });
+            }
+
+            lists[0] = itemList;
+            lists[1] = statusList;
+            return lists;
         }
 
         [HttpGet]
@@ -62,83 +90,83 @@ namespace RetailSystem.Controllers
             return Ok(locationItemDto);
         }
 
-        //[HttpPost]
-        //[SwaggerResponse(typeof(LocationItemDto))]
-        //public async Task<IActionResult> CreateLocationItem([FromBody] LocationItemDto locationItemDto)
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        return BadRequest(ModelState);
-        //    }
+        [HttpPost]
+        [SwaggerResponse(typeof(LocationItemDto))]
+        public async Task<IActionResult> CreateLocationItem([FromBody] LocationItemDto locationItemDto)
+        {
+           if (!ModelState.IsValid)
+           {
+               return BadRequest(ModelState);
+           }
 
-        //    var locationItem = _mapper.Map<LocationItem>(locationItemDto);
-        //    try
-        //    {
-        //        _repository.Add(locationItem);
-        //        await _unitOfWork.SaveAsync();
-        //        var createdResult = CreatedAtAction("GetLocationItemById", new { locationId = locationItem.LocationId, itemId = locationItem.ItemId }, null);
-        //        createdResult.StatusCode = 200;
-        //        return createdResult;
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        throw new Exception(e.Message);
-        //    }
-        //}
+           var locationItem = _mapper.Map<LocationItem>(locationItemDto);
+           try
+           {
+               _repository.Add(locationItem);
+               await _unitOfWork.SaveAsync();
+               var createdResult = CreatedAtAction("GetLocationItemById", new { locationId = locationItem.LocationId, itemId = locationItem.ItemId }, null);
+               createdResult.StatusCode = 200;
+               return createdResult;
+           }
+           catch (Exception e)
+           {
+               throw new Exception(e.Message);
+           }
+        }
 
-        //[HttpPut]
-        //[SwaggerResponse(typeof(LocationItemDto))]
-        //public async Task<IActionResult> UpdateLocationItem([FromBody] LocationItemDto locationItemDto)
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        return BadRequest(ModelState);
-        //    }
+        [HttpPut]
+        [SwaggerResponse(typeof(LocationItemDto))]
+        public async Task<IActionResult> UpdateLocationItem([FromBody] LocationItemDto locationItemDto)
+        {
+           if (!ModelState.IsValid)
+           {
+               return BadRequest(ModelState);
+           }
 
-        //    var locationItem = await _repository.GetByIdAsync(locationItemDto.LocationId, locationItemDto.ItemId);
-        //    if (locationItem == null)
-        //    {
-        //        return NotFound("Location Item does not exist");
-        //    }
+           var locationItem = await _repository.GetByIdAsync(locationItemDto.LocationId, locationItemDto.ItemId);
+           if (locationItem == null)
+           {
+               return NotFound("Location Item does not exist");
+           }
 
-        //    _mapper.Map(locationItemDto, locationItem);
+           _mapper.Map(locationItemDto, locationItem);
 
-        //    try
-        //    {
-        //        _repository.Update(locationItem);
-        //        await _unitOfWork.SaveAsync();
-        //    }
+           try
+           {
+               _repository.Update(locationItem);
+               await _unitOfWork.SaveAsync();
+           }
 
-        //    catch (Exception)
-        //    {
-        //        throw new Exception("An unexpected error occured. Could not update.");
-        //    }
+           catch (Exception)
+           {
+               throw new Exception("An unexpected error occured. Could not update.");
+           }
 
-        //    return Ok(_mapper.Map<LocationItemDto>(locationItem));
-        //}
+           return Ok(_mapper.Map<LocationItemDto>(locationItem));
+        }
 
-        //[HttpDelete]
-        //[SwaggerResponse(typeof(int))]
-        //public async Task<IActionResult> DeleteLocationItem(int locationId, int itemId)
-        //{
-        //    var locationItem = await _repository.GetByIdAsync(locationId, itemId);
-        //    if (locationItem == null)
-        //    {
-        //        return NotFound("The Location Item to be deleted does not exist");
-        //    }
+        [HttpDelete]
+        [SwaggerResponse(typeof(int))]
+        public async Task<IActionResult> DeleteLocationItem(int locationId, int itemId)
+        {
+           var locationItem = await _repository.GetByIdAsync(locationId, itemId);
+           if (locationItem == null)
+           {
+               return NotFound("The Location Item to be deleted does not exist");
+           }
 
-        //    _repository.Remove(locationItem);
+           _repository.Remove(locationItem);
 
-        //    try
-        //    {
-        //        await _unitOfWork.SaveAsync();
-        //        return Ok(new { locationItem.LocationId, locationItem.ItemId });
-        //    }
-        //    catch (Exception)
-        //    {
-        //        throw new Exception("An unexpected error occured. Could not delete.");
-        //    }
-        //}
+           try
+           {
+               await _unitOfWork.SaveAsync();
+               return Ok(new { locationItem.LocationId, locationItem.ItemId });
+           }
+           catch (Exception)
+           {
+               throw new Exception("An unexpected error occured. Could not delete.");
+           }
+        }
 
     }
 }

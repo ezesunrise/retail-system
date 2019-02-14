@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace DataCapture.Controllers
 {
+    [ApiController]
     [Route("api/[controller]/[action]")]
     public class AccountController : Controller
     {
@@ -43,13 +44,8 @@ namespace DataCapture.Controllers
         [HttpPost]
         [SwaggerResponse(typeof(void))]
 	[Authorize]
-        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
+        public async Task<IActionResult> ChangePassword(ChangePasswordDto dto)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
             var user = await _userService.GetByIdAsync(int.Parse(User.Identity.Name));
             if (user == null)
             {

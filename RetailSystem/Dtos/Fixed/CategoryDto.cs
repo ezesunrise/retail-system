@@ -13,6 +13,9 @@ namespace RetailSystem.Dtos
         [StringLength(256)]
         public string Description { get; set; }
 
+        [StringLength(AppConsts.CategoryCodeLength)]
+        public string Code { get; set; }
+
         public int BusinessId { get; set; }
     }
 }

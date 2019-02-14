@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace DataCapture.Controllers
 {
     [ApiController]
-    [Authorize(Roles = "Admin")]
+    [Produces("aplication/json")]
     [Route("api/[controller]/[action]")]
     [Authorize(Roles = Role.AdminOrManager)]
     public class AppUserController : Controller
@@ -33,7 +33,7 @@ namespace DataCapture.Controllers
         // POST: api/Users/CreateUser
         [SwaggerResponse(typeof(int))]
         [HttpPost]
-        public async Task<IActionResult> CreateUser([FromBody] RegisterDto data)
+        public async Task<IActionResult> CreateUser(RegisterDto data)
         {
             try
             {
@@ -123,9 +123,9 @@ namespace DataCapture.Controllers
         [HttpPost]
         [SwaggerResponse(typeof(void))]
         [Authorize(Roles = Role.Admin)]
-        public async Task<IActionResult> ResetPassword()
+        public async Task<IActionResult> ResetPassword(int userId)
         {
-            var user = await _userService.GetByIdAsync(int.Parse(User.Identity.Name));
+            var user = await _userService.GetByIdAsync(userId);
             if (user == null)
             {
                 // Don't reveal that the user does not exist

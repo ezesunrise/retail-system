@@ -56,7 +56,8 @@ namespace RetailSystem
             services.AddScoped<IAccountService, AccountService>();
 
             // Inject Repository Implementations
-            services.AddScoped<IRepository<Item>, Repository<Item>>();
+            services.AddScoped<IItemRepository, ItemRepository>();
+            //services.AddScoped<IRepository<Item>, Repository<Item>>();
             services.AddScoped<IRepository<Business>, Repository<Business>>();
             services.AddScoped<IRepository<Category>, Repository<Category>>();
             services.AddScoped<IRepository<Customer>, Repository<Customer>>();
@@ -132,16 +133,16 @@ namespace RetailSystem
             {
                 app.UseDeveloperExceptionPage();
                 app.UseDatabaseErrorPage();
-            }
-            else
-            {
-                app.UseExceptionHandler("/Home/Error");
-                app.UseHsts();
                 app.UseCors(x => x
                 .AllowAnyOrigin()
                 .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowCredentials());
+            }
+            else
+            {
+                app.UseExceptionHandler("/Home/Error");
+                app.UseHsts();
             }
 
             //app.UseHttpsRedirection();

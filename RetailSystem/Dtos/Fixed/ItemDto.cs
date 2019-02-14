@@ -30,14 +30,14 @@ namespace RetailSystem.Dtos
         [StringLength(1024)]
         public string Note { get; set; }
 
-        public int? CategoryId { get; set; }
+        public int CategoryId { get; set; }
 
         public int? SubCategoryId { get; set; }
 
         public int? ManufacturerId { get; set; }
 
         public int? SupplierId { get; set; }
-
+        
         public string AdditionalInfo { get; set; }
 
     }

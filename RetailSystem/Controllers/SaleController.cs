@@ -20,14 +20,14 @@ namespace RetailSystem.Controllers
     {
         private readonly IRepository<Sale> _repository;
         private readonly ICompositeRepository<LocationItem> _locationItemRepository;
-        private readonly IRepository<Item> _itemRepository;
+        private readonly IItemRepository _itemRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
         public SaleController(
             IRepository<Sale> repository,
             ICompositeRepository<LocationItem> locationItemRepository,
-            IRepository<Item> itemRepository,
+            IItemRepository itemRepository,
             IUnitOfWork unitOfWork,
             IMapper mapper)
         {

@@ -17,7 +17,7 @@ namespace RetailSystem.Controllers
     [Route("api/[controller]/[action]")]
     public class ItemController : Controller
     {
-        private readonly IRepository<Item> _repository;
+        private readonly IItemRepository _repository;
         private readonly IRepository<Category> _categoryRepository;
         private readonly IRepository<Supplier> _supplierRepository;
         private readonly IRepository<Manufacturer> _manufacturerRepository;
@@ -26,7 +26,7 @@ namespace RetailSystem.Controllers
         private readonly IMapper _mapper;
 
         public ItemController(
-            IRepository<Item> repository,
+            IItemRepository repository,
             IRepository<Category> categoryRepository,
             IRepository<Supplier> supplierRepository,
             IRepository<Manufacturer> manufacturerRepository,
@@ -44,9 +44,9 @@ namespace RetailSystem.Controllers
         }
 
         [HttpGet]
-        public async Task<IEnumerable<KeyValuePairDto>[]> GetListItems(int bussinessId)
+        public async Task<IList<KeyValuePairDto>[]> GetListItems(int bussinessId)
         {
-            List<KeyValuePairDto>[] lists = new List<KeyValuePairDto>[3];
+            List<KeyValuePairDto>[] lists = new List<KeyValuePairDto>[4];
 
             var categories = await _categoryRepository
                 .GetAsync(c => c.BusinessId == bussinessId);
@@ -54,36 +54,36 @@ namespace RetailSystem.Controllers
             {
                 DisplayName = i.Name,
                 Value = i.Id
-            });
+            }).ToList();
 
             var suppliers = await _supplierRepository
-                .GetAsync(c => c.BusinessId == bussinessId);
+                .GetAsync(s => s.BusinessId == bussinessId);
             var supplierKeyValPairs = suppliers.Select(i => new KeyValuePairDto
             {
                 DisplayName = i.Name,
                 Value = i.Id
-            });
-
+            }).ToList();
+            
             var manufacturers = await _manufacturerRepository
-                .GetAsync(c => c.BusinessId == bussinessId);
-            var manufacturerKeyValPairs = categories.Select(i => new KeyValuePairDto
+                .GetAsync(m => m.BusinessId == bussinessId);
+            var manufacturerKeyValPairs = manufacturers.Select(i => new KeyValuePairDto
             {
                 DisplayName = i.Name,
                 Value = i.Id
-            });
+            }).ToList();
 
             var units = await _unitRepository
-                .GetAsync(c => c.BusinessId == bussinessId);
-            var unitKeyValPairs = categories.Select(i => new KeyValuePairDto
+                .GetAsync(u => u.BusinessId == bussinessId);
+            var unitKeyValPairs = units.Select(i => new KeyValuePairDto
             {
                 DisplayName = i.Name,
                 Value = i.Id
-            });
+            }).ToList();
 
-            lists.Append(categoryKeyValPairs);
-            lists.Append(supplierKeyValPairs);
-            lists.Append(manufacturerKeyValPairs);
-            lists.Append(unitKeyValPairs);
+            lists[0] = categoryKeyValPairs;
+            lists[1] = supplierKeyValPairs;
+            lists[2] = manufacturerKeyValPairs;
+            lists[3] = unitKeyValPairs;
             return lists;
         }
 
@@ -131,6 +131,35 @@ namespace RetailSystem.Controllers
             }
 
             var entity = _mapper.Map<Item>(entityDto);
+            var lastEntity = await _repository.GetLastAsync(i => i.CategoryId == entity.CategoryId);
+
+            if(lastEntity == null)
+            {
+                var category = await _categoryRepository.GetByIdAsync(entity.CategoryId);
+                if(category == null)
+                {
+                    return BadRequest("Category does not exist");
+                }
+                entity.Code = category.Code + "001";
+            }
+            else
+            {
+                var lastNumber = lastEntity.Code.Substring(AppConsts.CategoryCodeLength);
+                var newNumber = (int.Parse(lastNumber) + 1).ToString();
+                switch (newNumber.Length)
+                {
+                    case 1:
+                        newNumber = "00" + newNumber;
+                        break;
+                    case 2:
+                        newNumber = "0" + newNumber;
+                        break;
+                    default:
+                        return BadRequest("Cannot add any more item to this category");
+                }
+                entity.Code = lastEntity.Code.Substring(0, AppConsts.CategoryCodeLength) + newNumber;
+            }
+
             try
             {
                 _repository.Add(entity);

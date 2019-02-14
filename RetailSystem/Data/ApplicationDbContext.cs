@@ -74,15 +74,21 @@ namespace RetailSystem.Data
                 .OnDelete(DeleteBehavior.Restrict);
             //Category
             builder.Entity<Category>()
-                .HasIndex(c => c.Name).HasName("Category_Name").IsUnique();
+                .HasIndex(c => new { c.BusinessId, c.Name }).HasName("Business_Category_Name").IsUnique();
+            builder.Entity<Category>()
+                .HasIndex(c => new { c.BusinessId, c.Code }).HasName("Business_Category_Code").IsUnique();
             //SubCategory
             builder.Entity<SubCategory>()
                 .HasIndex(s => new { s.Name, s.CategoryId }).HasName("SubCategory_Name_CategoryId").IsUnique();
             //Item
             builder.Entity<Item>()
-                .HasAlternateKey(i => i.Code).HasName("Item_Code");
+                .HasOne(i => i.Category)
+                .WithMany(c => c.Items)
+                .OnDelete(DeleteBehavior.Restrict);
             builder.Entity<Item>()
-                .HasIndex(i => i.Description).HasName("Item_Description");
+                .HasAlternateKey(i => new { i.CategoryId, i.Code }).HasName("Category_Item_Code");
+            builder.Entity<Item>()
+                .HasIndex(i => new { i.CategoryId, i.Description }).HasName("Category_Item_Description");
             builder.Entity<Item>()
                 .Property(i => i.UnitCost)
                 .HasColumnType("decimal(10,2)");
@@ -98,10 +104,10 @@ namespace RetailSystem.Data
                 .HasColumnType("decimal(10,2)");
             //Sale
             builder.Entity<Sale>()
-                .HasIndex(s => s.ReferenceNumber).HasName("Sale_ReferenceNumber").IsUnique();
+                .HasIndex(s => new { s.LocationId, s.ReferenceNumber }).HasName("Location_Sale_ReferenceNumber").IsUnique();
             //Supply
             builder.Entity<Supply>()
-                .HasIndex(s => s.ReferenceNumber).HasName("Supply_ReferenceNumber").IsUnique();
+                .HasIndex(s => new { s.LocationId, s.ReferenceNumber }).HasName("Location_Supply_ReferenceNumber").IsUnique();
             //LocationItem
             builder.Entity<LocationItem>()
                 .HasKey(l => new { l.LocationId, l.ItemId })
@@ -113,7 +119,7 @@ namespace RetailSystem.Data
             builder.Entity<Location>()
                 .HasAlternateKey(l => l.Code).HasName("Location_Code");
             builder.Entity<Location>()
-                .HasIndex(l => l.Name).HasName("Location_Name").IsUnique();
+                .HasIndex(l => new { l.BusinessId, l.Name }).HasName("Business_Location_Name").IsUnique();
             builder.Entity<Location>()
                 .Property(l => l.Target)
                 .HasColumnType("decimal(12,2)");
@@ -153,18 +159,18 @@ namespace RetailSystem.Data
                 .HasName("ReportItem_Id");
             //Supplier
             builder.Entity<Supplier>()
-                .HasIndex(s => s.SupplierNumber).HasName("Supplier_Number").IsUnique();
+                .HasIndex(s => new { s.BusinessId, s.SupplierNumber }).HasName("Business_Supplier_Number").IsUnique();
             builder.Entity<Supplier>()
-                .HasIndex(s => s.Name).HasName("Supplier_Name").IsUnique();
+                .HasIndex(s => new { s.BusinessId, s.Name }).HasName("Business_Supplier_Name").IsUnique();
             //Manufacturer
             builder.Entity<Manufacturer>()
-                .HasIndex(s => s.Name).HasName("Manufacturer_Name").IsUnique();
+                .HasIndex(m => new { m.BusinessId, m.Name }).HasName("Business_Manufacturer_Name").IsUnique();
             //PurchaseOrder
             builder.Entity<PurchaseOrder>()
-                .HasIndex(p => p.OrderNumber).HasName("PurchaseOrder_Number").IsUnique();
+                .HasIndex(p => new { p.LocationId, p.OrderNumber }).HasName("Business_Order_Number").IsUnique();
             //Transfer
             builder.Entity<Transfer>()
-                .HasIndex(t => t.TransferNumber).HasName("Transfer_Number").IsUnique();
+                .HasIndex(t => new { t.SourceLocationId, t.DestinationLocationId, t.TransferNumber }).HasName("Location_Transfer_Number").IsUnique();
             //Invoice
             builder.Entity<Invoice>()
                 .HasIndex(i => i.InvoiceNumber).HasName("Invoice_Number").IsUnique();
